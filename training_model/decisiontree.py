@@ -17,12 +17,15 @@ class ModelDecisionTree:
     def __init__(self):
         pass
 
-    def train(self, smell_types):
-        print(f"train it - {smell_types}")
+    def train(self, smell_types, operation):
+        # print(f"train it - {smell_types}")
 
         # step01: load dataset from file
 
-        self.print_result("Smell", "Accuracy(%)", "F1-score(%)")
+        if operation == "generate":
+            self.print_result("Smell", "Accuracy(%)", "F1-score(%)")
+        elif operation == "compare":
+            self.print_result(smell_types[0], "Accuracy(%)", "F1-score(%)")
 
         for smell_type in smell_types:
             dataset_filename = self._get_dataset_filename(smell_type)
@@ -58,38 +61,52 @@ class ModelDecisionTree:
             # print("scores average (f1): " , str(np.average(scores)))
 
             # step06-2: train it with multiple combinations
-            depths = np.arange(1, 6)
-            min_samples = np.arange(2, 6) # must be > than 1
-            min_samples_leaf = np.arange(1, 5)
-            # num_leafs = [1, 5, 10, 20, 50, 100]
-            param_grid = { 'criterion':['gini','entropy'],
-                           'splitter': ["best", "random"],
-                           'max_depth': depths,
-                           'min_samples_split': min_samples,
-                           'min_samples_leaf': min_samples_leaf
-                        }
+            param_grid = self.get_param_grid()
+            best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, param_grid, y_train)
 
-            scoring_strategy_list = ["accuracy", "f1"]
-            for scoring_strategy in scoring_strategy_list:
-                new_tree_clf = DecisionTreeClassifier()
-                grid_search = GridSearchCV(new_tree_clf, param_grid, cv=5, scoring=scoring_strategy, return_train_score=True)
+            if operation == "generate":
+                self.print_result(smell_type, accuracy_score_result, f1_score_result)
+            elif operation == "compare":
+                self.print_result("training set", accuracy_score_result, f1_score_result)
+                accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
+                f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
+                self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
 
-                grid_search_config_info = grid_search.fit(X_train, y_train)
-                if (is_develop_mode):
-                    print(grid_search_config_info)
-                if (is_develop_mode):
-                    print(grid_search.best_estimator_)
+    def get_param_grid(self):
+        depths = np.arange(1, 6)
+        min_samples = np.arange(2, 6)  # must be > than 1
+        min_samples_leaf = np.arange(1, 5)
+        # num_leafs = [1, 5, 10, 20, 50, 100]
+        param_grid = {'criterion': ['gini', 'entropy'],
+                      'splitter': ["best", "random"],
+                      'max_depth': depths,
+                      'min_samples_split': min_samples,
+                      'min_samples_leaf': min_samples_leaf
+                      }
+        return param_grid
 
-                best_model = grid_search.best_estimator_
+    def train_helper(self, X_train, param_grid, y_train):
+        scoring_strategy_list = ["accuracy", "f1"]
+        for scoring_strategy in scoring_strategy_list:
+            new_tree_clf = DecisionTreeClassifier()
+            grid_search = GridSearchCV(new_tree_clf, param_grid, cv=5, scoring=scoring_strategy,
+                                       return_train_score=True)
 
-                if scoring_strategy is "accuracy":
-                    accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100) )
-                    # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + accuracy_score_result)
-                elif scoring_strategy is "f1":
-                    f1_score_result = str( int(f1_score(y_train, best_model.predict(X_train)) * 100) )
-                    # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + f1_score_result)
+            grid_search_config_info = grid_search.fit(X_train, y_train)
+            if (is_develop_mode):
+                print(grid_search_config_info)
+            if (is_develop_mode):
+                print(grid_search.best_estimator_)
 
-            self.print_result(smell_type, accuracy_score_result, f1_score_result)
+            best_model = grid_search.best_estimator_
+
+            if scoring_strategy is "accuracy":
+                accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
+                # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + accuracy_score_result)
+            elif scoring_strategy is "f1":
+                f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
+                # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + f1_score_result)
+        return best_model, accuracy_score_result, f1_score_result
 
     def print_result(self, col1, col2, col3):
         smell_padding = col1.rjust(padding_count)

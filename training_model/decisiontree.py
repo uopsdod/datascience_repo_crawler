@@ -90,7 +90,7 @@ class ModelDecisionTree:
         for scoring_strategy in scoring_strategy_list:
             new_tree_clf = DecisionTreeClassifier()
             grid_search = GridSearchCV(new_tree_clf, param_grid, cv=5, scoring=scoring_strategy,
-                                       return_train_score=True)
+                                       return_train_score=True, n_jobs=-1)
 
             grid_search_config_info = grid_search.fit(X_train, y_train)
             if (is_develop_mode):

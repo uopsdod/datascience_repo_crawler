@@ -11,6 +11,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
 is_develop_mode = False
+padding_count = 20
 
 class ModelDecisionTree:
     def __init__(self):
@@ -20,6 +21,9 @@ class ModelDecisionTree:
         print(f"train it - {smell_types}")
 
         # step01: load dataset from file
+
+        self.print_result("Smell", "Accuracy(%)", "F1-score(%)")
+
         for smell_type in smell_types:
             dataset_filename = self._get_dataset_filename(smell_type)
             if dataset_filename == "none":
@@ -76,13 +80,22 @@ class ModelDecisionTree:
                 if (is_develop_mode):
                     print(grid_search.best_estimator_)
 
-                # compare the typical decisiontree training vs. optimized-with-searchgrid one
-
                 best_model = grid_search.best_estimator_
+
                 if scoring_strategy is "accuracy":
-                    print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + str(accuracy_score(y_train, best_model.predict(X_train))))
+                    accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100) )
+                    # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + accuracy_score_result)
                 elif scoring_strategy is "f1":
-                    print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + str(f1_score(y_train, best_model.predict(X_train))))
+                    f1_score_result = str( int(f1_score(y_train, best_model.predict(X_train)) * 100) )
+                    # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + f1_score_result)
+
+            self.print_result(smell_type, accuracy_score_result, f1_score_result)
+
+    def print_result(self, col1, col2, col3):
+        smell_padding = col1.rjust(padding_count)
+        accuracy_padding = col2.rjust(padding_count)
+        f1score_padding = col3.rjust(padding_count)
+        print(smell_padding, accuracy_padding, f1score_padding)
 
     def _get_dataset_filename(self, smell_type):
         dateset_folder = "training_dataset"

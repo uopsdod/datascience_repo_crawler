@@ -1,18 +1,18 @@
 {
     "decisiontree_data-class_accuracy_test": "80",
-    "decisiontree_data-class_accuracy_trained": "84",
+    "decisiontree_data-class_accuracy_trained": "85",
     "decisiontree_data-class_f1score_test": "53",
     "decisiontree_data-class_f1score_trained": "69",
     "decisiontree_feature-envy_accuracy_test": "84",
     "decisiontree_feature-envy_accuracy_trained": "83",
     "decisiontree_feature-envy_f1score_test": "62",
     "decisiontree_feature-envy_f1score_trained": "66",
-    "decisiontree_god-class_accuracy_test": "76",
+    "decisiontree_god-class_accuracy_test": "77",
     "decisiontree_god-class_accuracy_trained": "83",
-    "decisiontree_god-class_f1score_test": "25",
-    "decisiontree_god-class_f1score_trained": "56",
-    "decisiontree_long-method_accuracy_test": "76",
-    "decisiontree_long-method_accuracy_trained": "83",
-    "decisiontree_long-method_f1score_test": "11",
-    "decisiontree_long-method_f1score_trained": "36"
+    "decisiontree_god-class_f1score_test": "36",
+    "decisiontree_god-class_f1score_trained": "57",
+    "decisiontree_long-method_accuracy_test": "80",
+    "decisiontree_long-method_accuracy_trained": "84",
+    "decisiontree_long-method_f1score_test": "0",
+    "decisiontree_long-method_f1score_trained": "10"
 }

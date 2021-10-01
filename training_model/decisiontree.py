@@ -10,15 +10,16 @@ import numpy as np
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
-import json
+
+from myutils.CacheService import CacheService
 
 is_develop_mode = False
 padding_count = 20
-cache_filename = 'cache.json'
 
 class ModelDecisionTree:
     def __init__(self):
         self.modelname = 'decisiontree'
+        self.cacheService = CacheService()
         pass
 
     def train(self, smell_types, operation, operation_picked):
@@ -35,12 +36,12 @@ class ModelDecisionTree:
         for smell_type in smell_types:
 
             if operation_picked == 'retrain':
-                self.clear_cache(operation, smell_type)
+                self.cacheService.clear_cache(self.modelname, smell_type)
 
             (accuracy_score_result_cached,
              accuracy_score_result_test_cached,
              f1_score_result_cached,
-             f1_score_result_test_cached) = self.use_cache(operation, smell_type)
+             f1_score_result_test_cached) = self.cacheService.use_cache(self.modelname, smell_type)
 
             if accuracy_score_result_cached is not None:
                 self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
@@ -93,8 +94,12 @@ class ModelDecisionTree:
             f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
 
             # cache
-            self.save_to_cache(accuracy_score_result, accuracy_score_result_test, f1_score_result, f1_score_result_test,
-                               smell_type)
+            self.cacheService.update_cache(accuracy_score_result,
+                                           accuracy_score_result_test,
+                                           f1_score_result,
+                                           f1_score_result_test,
+                                           self.modelname,
+                                           smell_type)
 
             # what to print
             self.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
@@ -102,46 +107,7 @@ class ModelDecisionTree:
 
 
 
-    def clear_cache(self, operation, smell_type):
-        with open(cache_filename) as json_file:
-            data = json.load(json_file)
-            if f'decisiontree_{smell_type}_accuracy_trained' in data:
-                data.pop(f'{self.modelname}_{smell_type}_accuracy_trained', None)
-                data.pop(f'{self.modelname}_{smell_type}_accuracy_test', None)
-                data.pop(f'{self.modelname}_{smell_type}_f1score_trained', None)
-                data.pop(f'{self.modelname}_{smell_type}_f1score_test', None)
 
-        # rewrite
-        with open(cache_filename, 'w') as outfile:
-            json.dump(data, outfile, sort_keys=True, indent=4)
-
-    def use_cache(self, operation, smell_type):
-        with open(cache_filename) as json_file:
-            data = json.load(json_file)
-            if f'decisiontree_{smell_type}_accuracy_trained' in data:
-                accuracy_score_result_cached = data[f'{self.modelname}_{smell_type}_accuracy_trained']
-                accuracy_score_result_test_cached = data[f'{self.modelname}_{smell_type}_accuracy_test']
-                f1_score_result_cached = data[f'{self.modelname}_{smell_type}_f1score_trained']
-                f1_score_result_test_cached = data[f'{self.modelname}_{smell_type}_f1score_test']
-
-                return accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached, f1_score_result_test_cached
-                # if accuracy_score_result_cached and f1_score_result_cached:
-                    # self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
-                    #                        f1_score_result_test_cached, operation, smell_type)
-                # return True
-        return None, None, None, None
-
-    def save_to_cache(self, accuracy_score_result, accuracy_score_result_test, f1_score_result, f1_score_result_test,
-                      smell_type):
-        with open(cache_filename) as json_file:
-            data = json.load(json_file)
-
-        data[f'{self.modelname}_{smell_type}_accuracy_trained'] = accuracy_score_result
-        data[f'{self.modelname}_{smell_type}_f1score_trained'] = f1_score_result
-        data[f'{self.modelname}_{smell_type}_accuracy_test'] = accuracy_score_result_test
-        data[f'{self.modelname}_{smell_type}_f1score_test'] = f1_score_result_test
-        with open(cache_filename, 'w') as outfile:
-            json.dump(data, outfile, sort_keys=True, indent=4)
 
     def print_result_here(self, accuracy_score_result, accuracy_score_result_test, f1_score_result,
                           f1_score_result_test, operation, smell_type):

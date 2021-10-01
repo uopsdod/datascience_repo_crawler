@@ -72,9 +72,9 @@ class ModelRandomForest:
             # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
 
             # step03-2: feature selection (remove low variance) - to combat skewed data # report: not better, so don't use it
-            # p = .9
-            # sel = VarianceThreshold(threshold=(p * (1 - p)))
-            # new_X = sel.fit_transform(new_X)
+            p = .9
+            sel = VarianceThreshold(threshold=(p * (1 - p)))
+            new_X = sel.fit_transform(new_X)
             # step03-2: feature selection (pick K best)
             # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
 

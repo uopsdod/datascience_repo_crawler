@@ -1,6 +1,7 @@
 from training_model import ModelDecisionTree
 from training_model.naivebayes import ModelNaiveBayes
 from training_model.randomforest import ModelRandomForest
+from training_model.svc import ModelSVC
 
 
 class Main:
@@ -20,7 +21,7 @@ class Main:
         print("1. decision tree ")
         print("2. random forest ")
         print("3. naïve bayes ")
-        print("4. SVC (XXXXXX kernel) ")
+        print("4. LinearSVC ")
         model_id = input("please type # of model: ")
         # print(f'You entered {model_id}')
         # print("please type # of model: ")
@@ -80,7 +81,7 @@ class Main:
         if model_id == "3":
             return ModelNaiveBayes()
         if model_id == "4":
-            return
+            return ModelSVC()
         return "none"
 
     def get_smell_picked(self, smell_ids):
@@ -110,7 +111,7 @@ main = Main();
 main.start();
 
 ## test
-# ModelNaiveBayes().train(["feature-envy"], "generate")
-# ModelNaiveBayes().train(["feature-envy"], "compare")
+# ModelSVC().train(["feature-envy"], "generate")
+# ModelSVC().train(["feature-envy"], "compare")
 
 

@@ -1,9 +1,14 @@
 from scipy.io import arff
 import pandas as pd
 from sklearn import preprocessing
-from sklearn.feature_selection import VarianceThreshold
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import VarianceThreshold, SelectKBest, chi2
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import cross_val_score
 import numpy as np
@@ -14,7 +19,7 @@ from sklearn.metrics import f1_score
 is_develop_mode = False
 padding_count = 20
 
-class ModelDecisionTree:
+class ModelSVC:
     def __init__(self):
         pass
 
@@ -34,6 +39,7 @@ class ModelDecisionTree:
                 return
             data = arff.loadarff(dataset_filename)
 
+
             # step02: get a dataframe from dataset
             df = pd.DataFrame(data[0])
 
@@ -49,27 +55,24 @@ class ModelDecisionTree:
             new_X = imputer.transform(X_copy) # ? what is the difference btwn fit vs. transform
             # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
 
-            # step03-2: feature selection (remove low variance) - to combat skewed data
-            # p = .7
-            # sel = VarianceThreshold(threshold=(p * (1 - p)))
-            # new_X = sel.fit_transform(new_X)
+            # step03-2: feature selection (remove low variance)
+            # p = .8
+            sel = VarianceThreshold(threshold=0.1)
+            new_X = sel.fit_transform(new_X)
             # step03-2: feature selection (pick K best)
             # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
 
             # step05: split into training dataframe & testing dataframe
-            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=42)
-
-            # step06: traing it
-            # tree_clf = DecisionTreeClassifier()
-            # tree_clf = DecisionTreeClassifier(criterion="entropy")
-            # scores = cross_val_score(tree_clf, X_train, y_train, cv=10, scoring="accuracy")
-            # print("scores mean (accuracy): " , str(np.mean(scores)))
-            # scores = cross_val_score(tree_clf, X_train, y_train, cv=10, scoring="f1")
-            # print("scores average (f1): " , str(np.average(scores)))
+            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
 
             # step06-2: train it with multiple combinations
+            pipe = Pipeline([
+                # ('svc', SVC()),
+                ('scaler', StandardScaler()), # report: F1-score higher
+                ('svc', LinearSVC()) # report: much quicker than SVC(kernel=linear)
+            ])
             param_grid = self.get_param_grid()
-            best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, param_grid, y_train)
+            best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, y_train, param_grid, pipe)
 
             if operation == "generate":
                 self.print_result(smell_type, accuracy_score_result, f1_score_result)
@@ -80,25 +83,30 @@ class ModelDecisionTree:
                 self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
 
     def get_param_grid(self):
-        depths = np.arange(1, 6)
-        min_samples = np.arange(2, 6)  # must be > than 1
-        min_samples_leaf = np.arange(1, 5)
-        # num_leafs = [1, 5, 10, 20, 50, 100]
-        param_grid = {'criterion': ['gini', 'entropy'],
-                      'splitter': ["best", "random"],
-                      'max_depth': depths,
-                      'min_samples_split': min_samples,
-                      'min_samples_leaf': min_samples_leaf
+
+        param_grid = {
+            'svc__C': [1.0],
+            'svc__penalty': ['l2'],
+            'svc__max_iter': [100, 1000, 10000],
+            'svc__dual': [False] # report: Prefer dual=False when n_samples > n_features.
+            # 'svc__kernel': ['poly'],
+            # 'svc__cache_size': [200],
+            # 'svc__class_weight': ['balanced']
+            # 'naivebayes__priors': [[0.1, 0.9], [0.3, 0.7], [0.5, 0.5], [0.8, 0.2], [0.9, 0.1]], # report: to cope with skewed data
+            # 'naivebayes__var_smoothing': [1e-10, 1e-9, 1e-8, 1e-2] # report: to smooth the curve by adding the largest variance among features to all variance
                       }
         return param_grid
 
-    def train_helper(self, X_train, param_grid, y_train):
+    def train_helper(self, X_train, y_train, param_grid, estimators):
         scoring_strategy_list = ["accuracy", "f1"]
         for scoring_strategy in scoring_strategy_list:
-            new_tree_clf = DecisionTreeClassifier()
-            # RandomSearchVC (lookup)
-            grid_search = GridSearchCV(new_tree_clf, param_grid, cv=10, scoring=scoring_strategy,
-                                       return_train_score=True, n_jobs=-1)
+            grid_search = GridSearchCV(estimators, param_grid, cv=6, scoring=scoring_strategy,
+                                        return_train_score=True, n_jobs=-1, verbose=0)
+            # report: cv=1 - wrong - k-fold must > 1
+            # report: cv=2~5 - warning - ConvergenceWarning: Liblinear failed to converge, increase the number of iterations.
+
+            if is_develop_mode:
+                self.get_available_param_for_estimators(grid_search)
 
             grid_search_config_info = grid_search.fit(X_train, y_train)
             if (is_develop_mode):
@@ -115,6 +123,10 @@ class ModelDecisionTree:
                 f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
                 # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + f1_score_result)
         return best_model, accuracy_score_result, f1_score_result
+
+    def get_available_param_for_estimators(self, grid_search):
+        for param in grid_search.get_params().keys():
+            print(param)
 
     def print_result(self, col1, col2, col3):
         smell_padding = col1.rjust(padding_count)

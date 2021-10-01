@@ -1,6 +1,7 @@
 from scipy.io import arff
 import pandas as pd
 from sklearn import preprocessing
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
@@ -49,8 +50,15 @@ class ModelDecisionTree:
             new_X = imputer.transform(X_copy) # ? what is the difference btwn fit vs. transform
             # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
 
+            # step03-2: feature selection (remove low variance) - to combat skewed data
+            p = .7
+            sel = VarianceThreshold(threshold=(p * (1 - p)))
+            new_X = sel.fit_transform(new_X)
+            # step03-2: feature selection (pick K best)
+            # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
+
             # step05: split into training dataframe & testing dataframe
-            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=42)
+            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.35, random_state=42)
 
             # step06: traing it
             # tree_clf = DecisionTreeClassifier()
@@ -89,7 +97,7 @@ class ModelDecisionTree:
         scoring_strategy_list = ["accuracy", "f1"]
         for scoring_strategy in scoring_strategy_list:
             new_tree_clf = DecisionTreeClassifier()
-            grid_search = GridSearchCV(new_tree_clf, param_grid, cv=5, scoring=scoring_strategy,
+            grid_search = GridSearchCV(new_tree_clf, param_grid, cv=10, scoring=scoring_strategy,
                                        return_train_score=True, n_jobs=-1)
 
             grid_search_config_info = grid_search.fit(X_train, y_train)

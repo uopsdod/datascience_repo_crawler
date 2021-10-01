@@ -9,40 +9,46 @@ class Main:
         pass
 
     def start(self):
-        print("choose intention: ")
-        print("1. retrain models ")
-        print("2. see results")
-        operation_id = input("please type # of intention: ")
-        if operation_id != "1" and operation_id != "2":
-            print("intention_id is unknown. abort operation")
-            return
-        operation_picked = self.get_intention_picked(operation_id)
 
-        print("choose operation: ")
-        print("1. generate training results ")
-        print("2. compare training results")
-        operation_id = input("please type # of operation: ")
-        if operation_id != "1" and operation_id != "2":
-            print("operation_id is unknown. abort operation")
-            return
+        while(True):
+            print("choose intention: ")
+            print("1. retrain models ")
+            print("2. see results")
+            print("3. exit")
+            operation_id = input("please type # of intention: ").strip()
+            if operation_id != "1" and operation_id != "2" and operation_id != "3":
+                print("intention_id is unknown. abort operation")
+                continue
+            elif operation_id == "3":
+                print("program ended")
+                break
+            operation_picked = self.get_intention_picked(operation_id)
 
-        print("choose model: ")
-        print("1. decision tree ")
-        print("2. random forest ")
-        print("3. naïve bayes ")
-        print("4. LinearSVC ")
-        model_id = input("please type # of model: ")
-        # print(f'You entered {model_id}')
-        # print("please type # of model: ")
-        model_picked = self.get_model_picked(model_id);
-        if model_picked == "none":
-            print("model id is unknown. abort operation")
-            return
+            print("choose operation: ")
+            print("1. generate training results ")
+            print("2. compare training results")
+            operation_id = input("please type # of operation: ").strip()
+            if operation_id != "1" and operation_id != "2":
+                print("operation_id is unknown. abort operation")
+                continue
 
-        if operation_id == "1":
-            self.generate_training(model_picked, operation_picked)
-        elif operation_id == "2":
-            self.compare_training(model_picked, operation_picked)
+            print("choose model: ")
+            print("1. decision tree ")
+            print("2. random forest ")
+            print("3. naïve bayes ")
+            print("4. LinearSVC ")
+            model_id = input("please type # of model: ").strip()
+            # print(f'You entered {model_id}')
+            # print("please type # of model: ")
+            model_picked = self.get_model_picked(model_id);
+            if model_picked == "none":
+                print("model id is unknown. abort operation")
+                continue
+
+            if operation_id == "1":
+                self.generate_training(model_picked, operation_picked)
+            elif operation_id == "2":
+                self.compare_training(model_picked, operation_picked)
 
     def compare_training(self, model_picked, operation_picked):
         print("choose smell: ")
@@ -51,7 +57,7 @@ class Main:
         print("3. God Class ")
         print("4. Long Method ")
         print("(ex. 1) - for feature envy")
-        smell_ids = input("please type # of smell: ")
+        smell_ids = input("please type # of smell: ").strip()
         smell_picked = self.get_smell_picked(smell_ids)
         if smell_picked == "none":
             print("smell id is unknown. abort operation")
@@ -73,7 +79,7 @@ class Main:
         print("(ex. 1) - for feature envy")
         print("(ex. 1 3) - for feature envy, god class")
         print("(ex. 1 3 4) - for feature envy, god class, long method")
-        smell_ids = input("please type # of one or more smells: ")
+        smell_ids = input("please type # of one or more smells: ").strip()
         smell_picked = self.get_smell_picked(smell_ids)
         if smell_picked == "none":
             print("smell id is unknown. abort operation")
@@ -102,7 +108,7 @@ class Main:
 
     def get_smell_picked(self, smell_ids):
         smell_str_array = []
-        smell_ids_array = smell_ids.strip().split(" ")
+        smell_ids_array = smell_ids.split(" ")
 
         for smell_id in smell_ids_array:
             if smell_id == "1":

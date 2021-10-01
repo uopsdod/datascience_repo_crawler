@@ -1,3 +1,4 @@
+from myutils.printservice import PrintService
 from training_model import ModelDecisionTree
 from training_model.naivebayes import ModelNaiveBayes
 from training_model.randomforest import ModelRandomForest
@@ -6,6 +7,7 @@ from training_model.svc import ModelSVC
 
 class Main:
     def __init__(self):
+        self.printService = PrintService()
         pass
 
     def start(self):
@@ -13,13 +15,17 @@ class Main:
         while(True):
             print("choose intention: ")
             print("1. retrain models ")
-            print("2. see results")
-            print("3. exit")
+            print("2. see specific results")
+            print("3. see all results")
+            print("4. exit")
             operation_id = input("please type # of intention: ").strip()
-            if operation_id != "1" and operation_id != "2" and operation_id != "3":
+            if operation_id != "1" and operation_id != "2" and operation_id != "3" and operation_id != "4":
                 print("intention_id is unknown. abort operation")
                 continue
             elif operation_id == "3":
+                self.printService.print_all_test_result()
+                continue
+            elif operation_id == "4":
                 print("program ended")
                 break
             operation_picked = self.get_intention_picked(operation_id)

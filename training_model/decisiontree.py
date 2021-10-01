@@ -72,13 +72,16 @@ class ModelDecisionTree:
 
             # step03-2: feature selection (remove low variance) - to combat skewed data
             # p = .7
-            # sel = VarianceThreshold(threshold=(p * (1 - p)))
-            # new_X = sel.fit_transform(new_X)
+            sel = VarianceThreshold(threshold=0.8)
+            new_X = sel.fit_transform(new_X)
             # step03-2: feature selection (pick K best)
             # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
 
             # step05: split into training dataframe & testing dataframe
-            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=42)
+            test_size_now = 0.15
+            if smell_type == "long-method":
+                test_size_now = .35
+            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=test_size_now, random_state=42) # report: 0.35 to avoid test data too skewed?
 
             # step06: traing it
             # tree_clf = DecisionTreeClassifier()

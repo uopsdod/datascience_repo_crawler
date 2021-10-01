@@ -2,6 +2,7 @@ from scipy.io import arff
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import VarianceThreshold, SelectKBest, chi2
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
@@ -36,6 +37,7 @@ class ModelNaiveBayes:
                 return
             data = arff.loadarff(dataset_filename)
 
+
             # step02: get a dataframe from dataset
             df = pd.DataFrame(data[0])
 
@@ -45,6 +47,7 @@ class ModelNaiveBayes:
             encoder = preprocessing.LabelEncoder()
             y = encoder.fit_transform(Y_data)
 
+
             # step04: give missing data a mockup value
             X_copy = df.iloc[:, :-1].copy()
             imputer = SimpleImputer(strategy="median")
@@ -52,8 +55,15 @@ class ModelNaiveBayes:
             new_X = imputer.transform(X_copy) # ? what is the difference btwn fit vs. transform
             # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
 
-            # step05: split into training dataframe & testing dataframe
-            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.35, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
+            # step03-2: feature selection (remove low variance)
+            p = .8
+            sel = VarianceThreshold(threshold=(p * (1 - p)))
+            new_X = sel.fit_transform(new_X)
+            # step03-2: feature selection (pick K best)
+            # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
+
+        # step05: split into training dataframe & testing dataframe
+            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
 
             # step06-2: train it with multiple combinations
             randomforest_pipe = Pipeline([

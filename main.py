@@ -19,7 +19,7 @@ class Main:
             print("3. see all results")
             print("4. exit")
             operation_id = input("please type # of intention: ").strip()
-            if operation_id != "1" and operation_id != "2" and operation_id != "3" and operation_id != "4":
+            if operation_id != "1" and operation_id != "2" and operation_id != "3" and operation_id != "4" and operation_id != "gap":
                 print("intention_id is unknown. abort operation")
                 continue
             elif operation_id == "3":
@@ -28,6 +28,9 @@ class Main:
             elif operation_id == "4":
                 print("program ended")
                 break
+            elif operation_id == "gap":
+                self.printService.print_all_test_gap_result()
+                continue
             operation_picked = self.get_intention_picked(operation_id)
 
             print("choose operation: ")

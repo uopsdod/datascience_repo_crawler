@@ -83,7 +83,7 @@ class ModelSVC:
             # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
 
             # step05: split into training dataframe & testing dataframe
-            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
+            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.35, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
 
             # step06-2: train it with multiple combinations
             pipe = Pipeline([

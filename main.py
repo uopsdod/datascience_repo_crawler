@@ -9,6 +9,15 @@ class Main:
         pass
 
     def start(self):
+        print("choose intention: ")
+        print("1. retrain models ")
+        print("2. see results")
+        operation_id = input("please type # of intention: ")
+        if operation_id != "1" and operation_id != "2":
+            print("intention_id is unknown. abort operation")
+            return
+        operation_picked = self.get_intention_picked(operation_id)
+
         print("choose operation: ")
         print("1. generate training results ")
         print("2. compare training results")
@@ -31,11 +40,11 @@ class Main:
             return
 
         if operation_id == "1":
-            self.generate_training(model_picked)
+            self.generate_training(model_picked, operation_picked)
         elif operation_id == "2":
-            self.compare_training(model_picked)
+            self.compare_training(model_picked, operation_picked)
 
-    def compare_training(self, model_picked):
+    def compare_training(self, model_picked, operation_picked):
         print("choose smell: ")
         print("1. Feature Envy ")
         print("2. Data Class ")
@@ -52,9 +61,9 @@ class Main:
             return
 
         # God Class, Data Class, Feature Envy, and Long Method
-        model_picked.train(smell_picked, "compare")
+        model_picked.train(smell_picked, "compare", operation_picked)
 
-    def generate_training(self, model_picked):
+    def generate_training(self, model_picked, operation_picked):
 
         print("choose smells: ")
         print("1. Feature Envy ")
@@ -71,7 +80,14 @@ class Main:
             return
 
         # God Class, Data Class, Feature Envy, and Long Method
-        model_picked.train(smell_picked, "generate")
+        model_picked.train(smell_picked, "generate", operation_picked)
+
+    def get_intention_picked(self, intention_id):
+        if intention_id == "1":
+            return "retrain"
+        if intention_id == "2":
+            return "lookup"
+        return "none"
 
     def get_model_picked(self, model_id):
         if model_id == "1":

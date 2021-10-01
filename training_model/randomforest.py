@@ -107,10 +107,10 @@ class ModelRandomForest:
 
             best_model = grid_search.best_estimator_
 
-            if scoring_strategy is "accuracy":
+            if scoring_strategy == "accuracy":
                 accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
                 # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + accuracy_score_result)
-            elif scoring_strategy is "f1":
+            elif scoring_strategy == "f1":
                 f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
                 # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + f1_score_result)
         return best_model, accuracy_score_result, f1_score_result

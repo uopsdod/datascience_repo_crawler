@@ -46,5 +46,21 @@
     "randomforest_long-method_accuracy_test": "75",
     "randomforest_long-method_accuracy_trained": "84",
     "randomforest_long-method_f1score_test": "12",
-    "randomforest_long-method_f1score_trained": "55"
+    "randomforest_long-method_f1score_trained": "55",
+    "svc_data-class_accuracy_test": "80",
+    "svc_data-class_accuracy_trained": "85",
+    "svc_data-class_f1score_test": "32",
+    "svc_data-class_f1score_trained": "52",
+    "svc_feature-envy_accuracy_test": "78",
+    "svc_feature-envy_accuracy_trained": "85",
+    "svc_feature-envy_f1score_test": "34",
+    "svc_feature-envy_f1score_trained": "48",
+    "svc_god-class_accuracy_test": "79",
+    "svc_god-class_accuracy_trained": "84",
+    "svc_god-class_f1score_test": "18",
+    "svc_god-class_f1score_trained": "43",
+    "svc_long-method_accuracy_test": "76",
+    "svc_long-method_accuracy_trained": "84",
+    "svc_long-method_f1score_test": "37",
+    "svc_long-method_f1score_trained": "43"
 }

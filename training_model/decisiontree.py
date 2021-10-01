@@ -37,8 +37,14 @@ class ModelDecisionTree:
             if operation_picked == 'retrain':
                 self.clear_cache(operation, smell_type)
 
-            is_cache_used = self.use_cache(operation, smell_type)
-            if is_cache_used:
+            (accuracy_score_result_cached,
+             accuracy_score_result_test_cached,
+             f1_score_result_cached,
+             f1_score_result_test_cached) = self.use_cache(operation, smell_type)
+
+            if accuracy_score_result_cached is not None:
+                self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
+                                       f1_score_result_test_cached, operation, smell_type)
                 continue
 
             dataset_filename = self._get_dataset_filename(smell_type)
@@ -109,7 +115,6 @@ class ModelDecisionTree:
         with open(cache_filename, 'w') as outfile:
             json.dump(data, outfile, sort_keys=True, indent=4)
 
-
     def use_cache(self, operation, smell_type):
         with open(cache_filename) as json_file:
             data = json.load(json_file)
@@ -119,11 +124,12 @@ class ModelDecisionTree:
                 f1_score_result_cached = data[f'{self.modelname}_{smell_type}_f1score_trained']
                 f1_score_result_test_cached = data[f'{self.modelname}_{smell_type}_f1score_test']
 
-                if accuracy_score_result_cached and f1_score_result_cached:
-                    self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
-                                           f1_score_result_test_cached, operation, smell_type)
-                return True
-        return False
+                return accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached, f1_score_result_test_cached
+                # if accuracy_score_result_cached and f1_score_result_cached:
+                    # self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
+                    #                        f1_score_result_test_cached, operation, smell_type)
+                # return True
+        return None, None, None, None
 
     def save_to_cache(self, accuracy_score_result, accuracy_score_result_test, f1_score_result, f1_score_result_test,
                       smell_type):

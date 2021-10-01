@@ -12,14 +12,16 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
 from myutils.cacheservice import CacheService
+from myutils.printservice import PrintService
 
 is_develop_mode = False
-padding_count = 20
+
 
 class ModelDecisionTree:
     def __init__(self):
         self.modelname = 'decisiontree'
         self.cacheService = CacheService()
+        self.printService = PrintService()
         pass
 
     def train(self, smell_types, operation, operation_picked):
@@ -28,9 +30,9 @@ class ModelDecisionTree:
         # step01: load dataset from file
 
         if operation == "generate":
-            self.print_result("Smell", "Accuracy(%)", "F1-score(%)")
+            self.printService.print_result("Smell", "Accuracy(%)", "F1-score(%)")
         elif operation == "compare":
-            self.print_result(smell_types[0], "Accuracy(%)", "F1-score(%)")
+            self.printService.print_result(smell_types[0], "Accuracy(%)", "F1-score(%)")
 
 
         for smell_type in smell_types:
@@ -44,7 +46,7 @@ class ModelDecisionTree:
              f1_score_result_test_cached) = self.cacheService.use_cache(self.modelname, smell_type)
 
             if accuracy_score_result_cached is not None:
-                self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
+                self.printService.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
                                        f1_score_result_test_cached, operation, smell_type)
                 continue
 
@@ -102,20 +104,14 @@ class ModelDecisionTree:
                                            smell_type)
 
             # what to print
-            self.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+            self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
                                    f1_score_result_test, operation, smell_type)
 
 
 
 
 
-    def print_result_here(self, accuracy_score_result, accuracy_score_result_test, f1_score_result,
-                          f1_score_result_test, operation, smell_type):
-        if operation == "generate":
-            self.print_result(smell_type, accuracy_score_result, f1_score_result)
-        elif operation == "compare":
-            self.print_result("training set", accuracy_score_result, f1_score_result)
-            self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
+
 
     def get_param_grid(self):
         depths = np.arange(1, 6)
@@ -154,11 +150,6 @@ class ModelDecisionTree:
                 # print(f"decision tree - {smell_type} - {scoring_strategy} - score: " + f1_score_result)
         return best_model, accuracy_score_result, f1_score_result
 
-    def print_result(self, col1, col2, col3):
-        smell_padding = col1.rjust(padding_count)
-        accuracy_padding = col2.rjust(padding_count)
-        f1score_padding = col3.rjust(padding_count)
-        print(smell_padding, accuracy_padding, f1score_padding)
 
     def _get_dataset_filename(self, smell_type):
         dateset_folder = "training_dataset"

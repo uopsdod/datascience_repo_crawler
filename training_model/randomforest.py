@@ -13,14 +13,18 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
+from myutils.cacheservice import CacheService
+
 is_develop_mode = False
 padding_count = 20
 
 class ModelRandomForest:
     def __init__(self):
+        self.cacheService = CacheService()
+        self.modelname = 'randomforest'
         pass
 
-    def train(self, smell_types, operation):
+    def train(self, smell_types, operation, operation_picked):
         # print(f"train it - {smell_types}")
 
         # step01: load dataset from file
@@ -31,6 +35,20 @@ class ModelRandomForest:
             self.print_result(smell_types[0], "Accuracy(%)", "F1-score(%)")
 
         for smell_type in smell_types:
+
+            if operation_picked == 'retrain':
+                self.cacheService.clear_cache(self.modelname, smell_type)
+
+            (accuracy_score_result_cached,
+             accuracy_score_result_test_cached,
+             f1_score_result_cached,
+             f1_score_result_test_cached) = self.cacheService.use_cache(self.modelname, smell_type)
+
+            if accuracy_score_result_cached is not None:
+                self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
+                                       f1_score_result_test_cached, operation, smell_type)
+                continue
+
             dataset_filename = self._get_dataset_filename(smell_type)
             if dataset_filename == "none":
                 return
@@ -69,13 +87,28 @@ class ModelRandomForest:
             param_grid = self.get_param_grid()
             best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, y_train, param_grid, randomforest_pipe)
 
-            if operation == "generate":
-                self.print_result(smell_type, accuracy_score_result, f1_score_result)
-            elif operation == "compare":
-                self.print_result("training set", accuracy_score_result, f1_score_result)
-                accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
-                f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
-                self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
+            accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
+            f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
+
+            # cache
+            self.cacheService.update_cache(accuracy_score_result,
+                                           accuracy_score_result_test,
+                                           f1_score_result,
+                                           f1_score_result_test,
+                                           self.modelname,
+                                           smell_type)
+
+            self.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+                                   f1_score_result_test, operation, smell_type)
+
+    def print_result_here(self, accuracy_score_result, accuracy_score_result_test, f1_score_result,
+                          f1_score_result_test, operation, smell_type):
+        if operation == "generate":
+            self.print_result(smell_type, accuracy_score_result, f1_score_result)
+        elif operation == "compare":
+            self.print_result("training set", accuracy_score_result, f1_score_result)
+            self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
+
 
     def get_param_grid(self):
 

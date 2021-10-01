@@ -11,7 +11,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 
-from myutils.CacheService import CacheService
+from myutils.cacheservice import CacheService
 
 is_develop_mode = False
 padding_count = 20

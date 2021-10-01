@@ -10,12 +10,14 @@ import numpy as np
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
+import json
 
 is_develop_mode = False
 padding_count = 20
 
 class ModelDecisionTree:
     def __init__(self):
+        self.modelname = 'decisiontree'
         pass
 
     def train(self, smell_types, operation):
@@ -28,7 +30,22 @@ class ModelDecisionTree:
         elif operation == "compare":
             self.print_result(smell_types[0], "Accuracy(%)", "F1-score(%)")
 
+
         for smell_type in smell_types:
+
+            with open('cache.txt') as json_file:
+                data = json.load(json_file)
+                if f'decisiontree_{smell_type}_accuracy_trained' in data:
+                    accuracy_score_result_cached = data[f'{self.modelname}_{smell_type}_accuracy_trained']
+                    accuracy_score_result_test_cached = data[f'{self.modelname}_{smell_type}_accuracy_test']
+                    f1_score_result_cached = data[f'{self.modelname}_{smell_type}_f1score_trained']
+                    f1_score_result_test_cached = data[f'{self.modelname}_{smell_type}_f1score_test']
+
+                    if accuracy_score_result_cached and f1_score_result_cached:
+                        self.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
+                                               f1_score_result_test_cached, operation, smell_type)
+                    return
+
             dataset_filename = self._get_dataset_filename(smell_type)
             if dataset_filename == "none":
                 return
@@ -71,13 +88,30 @@ class ModelDecisionTree:
             param_grid = self.get_param_grid()
             best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, param_grid, y_train)
 
-            if operation == "generate":
-                self.print_result(smell_type, accuracy_score_result, f1_score_result)
-            elif operation == "compare":
-                self.print_result("training set", accuracy_score_result, f1_score_result)
-                accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
-                f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
-                self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
+            accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
+            f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
+
+            # cache
+            data = {}
+            data[f'{self.modelname}_{smell_type}_accuracy_trained'] = accuracy_score_result
+            data[f'{self.modelname}_{smell_type}_f1score_trained'] = f1_score_result
+            data[f'{self.modelname}_{smell_type}_accuracy_test'] = accuracy_score_result_test
+            data[f'{self.modelname}_{smell_type}_f1score_test'] = f1_score_result_test
+
+            with open('cache.txt', 'w') as outfile:
+                json.dump(data, outfile)
+
+            # what to print
+            self.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+                                   f1_score_result_test, operation, smell_type)
+
+    def print_result_here(self, accuracy_score_result, accuracy_score_result_test, f1_score_result,
+                          f1_score_result_test, operation, smell_type):
+        if operation == "generate":
+            self.print_result(smell_type, accuracy_score_result, f1_score_result)
+        elif operation == "compare":
+            self.print_result("training set", accuracy_score_result, f1_score_result)
+            self.print_result("test set", accuracy_score_result_test, f1_score_result_test)
 
     def get_param_grid(self):
         depths = np.arange(1, 6)

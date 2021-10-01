@@ -38,7 +38,6 @@ class ModelDecisionTree:
             df = pd.DataFrame(data[0])
 
             # step03: get independent variables(features)(x) & dependent variables(y)
-            X = df.iloc[:, :-1].values
             Y_data = df.iloc[:, -1].values
             encoder = preprocessing.LabelEncoder()
             y = encoder.fit_transform(Y_data)

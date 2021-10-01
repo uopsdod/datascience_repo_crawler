@@ -2,6 +2,7 @@ from scipy.io import arff
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -39,7 +40,6 @@ class ModelRandomForest:
             df = pd.DataFrame(data[0])
 
             # step03: get independent variables(features)(x) & dependent variables(y)
-            X = df.iloc[:, :-1].values
             Y_data = df.iloc[:, -1].values
             encoder = preprocessing.LabelEncoder()
             y = encoder.fit_transform(Y_data)
@@ -50,6 +50,14 @@ class ModelRandomForest:
             imputer.fit(X_copy)
             new_X = imputer.transform(X_copy) # ? what is the difference btwn fit vs. transform
             # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
+
+            # step03-2: feature selection (remove low variance) - to combat skewed data # report: not better, so don't use it
+            # p = .9
+            # sel = VarianceThreshold(threshold=(p * (1 - p)))
+            # new_X = sel.fit_transform(new_X)
+            # step03-2: feature selection (pick K best)
+            # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
+
 
             # step05: split into training dataframe & testing dataframe
             X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.35, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
@@ -85,7 +93,7 @@ class ModelRandomForest:
     def train_helper(self, X_train, y_train, param_grid, estimators):
         scoring_strategy_list = ["accuracy", "f1"]
         for scoring_strategy in scoring_strategy_list:
-            grid_search = GridSearchCV(estimators, param_grid, cv=3, scoring=scoring_strategy,
+            grid_search = GridSearchCV(estimators, param_grid, cv=5, scoring=scoring_strategy,
                                         return_train_score=True, n_jobs=-1)
 
             if is_develop_mode:

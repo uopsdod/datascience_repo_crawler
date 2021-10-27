@@ -1,6 +1,7 @@
 import os
 import shutil
 from util_module import bash
+from util_module import verbose_decorator
 
 class Organic:
 
@@ -25,7 +26,7 @@ class Organic:
         self.output_file = os.path.join(self.output_folder, Organic._FILE_BASE_NAME) # output_folder/{repo_name}/smells/smells.json
 
         # f-Strings
-        self.command = f"java -jar {self.smell_detector} -sf {self.output_file} -src {self.source_path}"
+        self.command = f'java -jar "{self.smell_detector}" -sf "{self.output_file}" -src "{self.source_path}"'
 
     def detect_smells(self):
         # check if folder exist, we will delete it
@@ -34,9 +35,8 @@ class Organic:
 
         os.makedirs(self.output_folder) # Create all the intermediate folders
 
-        # TODO: implement decorator design pattern (in our next lab
         # run organice
-        print(":: Detecting code smells ::")
-        bash.run_command(self.command, False)
-        print(":: Done ::")
+        run_command = verbose_decorator(bash.run_command)
+        run_command(self.command, True)
 
+        return self.output_file

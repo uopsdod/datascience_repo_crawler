@@ -2,6 +2,7 @@ from pydriller import Repository
 from util_module import RepositoryClone
 from pydriller import Git
 from smell_dector import Organic
+from smell_dector import OrganicParser
 
 class Project:
     def __init__(self, name, url, branch, starting_commit, ending_commit):
@@ -58,4 +59,9 @@ class Project:
 
         # WHAT CONNECNTS HERE: self.name
         organic = Organic(self.name, smell_detector, output_folder, repo_local_path)
-        organic.detect_smells()
+        smell_file = organic.detect_smells()
+
+        # parse the json file
+        parser = OrganicParser(smell_file)
+        project_smells = parser.parse()
+        print(f'Commit {self.starting_commit} contains {project_smells.get_total_smells()}')

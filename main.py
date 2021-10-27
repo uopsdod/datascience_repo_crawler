@@ -3,6 +3,7 @@ from settings import Settings
 from util_module import RepositoryLoader
 from git_minor import Project
 
+
 class Main:
     def __init__(self):
         self.settings = Settings()

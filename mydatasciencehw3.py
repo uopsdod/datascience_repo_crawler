@@ -27,8 +27,6 @@ def load_file(file_path):
 
         return convert_data(raw_data)
 
- 
-
 def convert_data(raw_data):
 
     data = []
@@ -40,8 +38,6 @@ def convert_data(raw_data):
     return data
 
 import pandas as pd
-
- 
 
 data = load_file("Bug_tt.json")
 df = pd.DataFrame(data, columns = ['Text', 'Label'])
@@ -65,8 +61,6 @@ from sklearn.feature_selection import chi2
 
 import numpy as np
 
- 
-
 df['text_parsed_1'] = df['Text'].str.replace("\r", " ")
 
 df['text_parsed_1'] = df['text_parsed_1'].str.replace("\n", " ")
@@ -77,25 +71,17 @@ df['text_parsed_1'] = df['text_parsed_1'].str.replace('"', '')
 
 df['text_parsed_1'] = df['text_parsed_1'].str.lower()
 
- 
-
 df.loc[3]['text_parsed_1']
 
 punctuation_signs = list("?:!.,;")
 
 df['text_parsed_2'] = df['text_parsed_1']
 
- 
-
 for punct_sign in punctuation_signs:
 
     df['text_parsed_2'] = df['text_parsed_2'].str.replace(punct_sign, '')
 
- 
-
 df['text_parsed_2'] = df['text_parsed_2'].str.replace("'s", "")
-
- 
 
 df.loc[3]['text_parsed_2']
 
@@ -111,15 +97,11 @@ nltk.download('wordnet')
 
 wordnet_lemmatizer = WordNetLemmatizer()
 
- 
-
 df.head()
 
 nrows = len(df)
 
 lemmatized_text_list = []
-
- 
 
 for row in range(0, nrows):
 
@@ -175,8 +157,6 @@ stop_words[0:10]
 
 df['text_parsed_4'] = df['text_parsed_3']
 
- 
-
 for stop_word in stop_words:
 
     regex_stopword = r"\b" + stop_word + r"\b"
@@ -193,13 +173,9 @@ df.head(1)
 
 # remove the intermediate columns
 
- 
-
 list_columns = ["Text", "Label", "text_parsed_4"]
 
 df = df[list_columns]
-
- 
 
 df = df.rename(columns={'text_parsed_4': 'text_parsed'})
 
@@ -215,21 +191,15 @@ label_codes = {
 
 }
 
- 
-
 # label mapping
 
 df['label_code'] = df['Label']
 
 df = df.replace({'label_code':label_codes})
 
- 
-
 df.head()
 
 # train - test split
-
- 
 
 X_train, X_test, y_train, y_test = train_test_split(df['text_parsed'],
 

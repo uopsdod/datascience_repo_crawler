@@ -1,6 +1,8 @@
 import pandas as pd
+import numpy as np
 
 from myutils.datasetservice import DatasetService
+from myutils.nlpservice import NLPService
 from myutils.printservice import PrintService
 from training_model import ModelDecisionTree
 from training_model.naivebayes import ModelNaiveBayes
@@ -13,17 +15,35 @@ class Main:
     def __init__(self):
         self.printService = PrintService()
         self.datasetService = DatasetService()
+        self.nlpservice = NLPService()
         pass
 
     def start(self):
 
-        dataset_types = ["bug", "feature", "rating", "userexperience"] # add two more
+        # dataset_types = ["bug", "feature", "rating", "userexperience"]
+        dataset_types = ["bug"]
         for dataset_type in dataset_types:
-            # dataset_type = "bug"
-            features_gleaned = ["title", "comment", "label"]
+            # step01: get the dataset you want from raw dataset
+            features_gleaned = ["title", "comment", "rating", "label"]
             df = self.datasetService.load_file(dataset_type, features_gleaned)
-            is_dataset_balance = self.datasetService.is_dataset_balance(dataset_type, df, "label")
-            print("hey001")
+            self.datasetService.fill_null_val(df, "title", "")
+            self.datasetService.fill_null_val(df, "comment", "")
+            self.datasetService.balance_dataset(dataset_type, df, "label")
+
+            # step02: use NLP to parse the comments
+            self.nlpservice.lemmatize(df, "title")
+            self.nlpservice.lemmatize(df, "comment")
+            # step03: use a format to represent parsed comments - it turns into multiple words as features
+            df_comment_tfidf_features = self.nlpservice.convert_to_tfidf_text_representation(df, "comment")
+            df_title_tfidf_features = self.nlpservice.convert_to_tfidf_text_representation(df, "title")
+            df_train = df_comment_tfidf_features.merge(df_title_tfidf_features, left_index=True, right_index=True) # join by index
+
+            #### now, you have features of text representation (title & comment) ####
+            # step01: get other features from Metadata
+            df_train["rating"] = df["rating"]
+            # step02: combine all features as features_train
+
+            print("")
 
         # while(True):
         #     print("choose intention: ")

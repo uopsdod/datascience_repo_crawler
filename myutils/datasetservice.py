@@ -16,7 +16,7 @@ class DatasetService:
             df = pd.DataFrame(data_gleaned, columns = elem_keys)
             return df
 
-    def is_dataset_balance(self, dataset_type, df, class_y):
+    def balance_dataset(self, dataset_type, df, class_y):
         class1_count, class2_count = self._get_class_count(df, class_y)
 
         if (class1_count != class2_count):
@@ -27,6 +27,8 @@ class DatasetService:
 
             print(f'upsampled {dataset_type}: {class1_count} vs {class2_count} ')
             return False
+        else:
+            print(f'balanced {dataset_type}: {class1_count} vs {class2_count} ')
         return True
 
     def _get_class_count(self, df, class_y):
@@ -34,6 +36,9 @@ class DatasetService:
         class1_count = value_counts[0]
         class2_count = value_counts[1]
         return class1_count, class2_count
+
+    def fill_null_val(self, df, feature, default_val):
+        df[feature].fillna(default_val, inplace = True)
 
     def upsample(self, df, class_y):
         value_counts = df[class_y].value_counts()
@@ -67,7 +72,6 @@ class DatasetService:
         # print(df_upsampled[class_y].value_counts())
 
         return df_upsampled
-
 
     def _get_dataset_filename(self, dataset_type):
         dateset_folder = "training_dataset"

@@ -93,9 +93,9 @@ class ModelNaiveBayes:
         random_search.fit(X_train, y_train)
         print("The best hyperparameters from Random Search are:")
         print(random_search.best_params_)
-        print("")
-        print("The mean accuracy of a model with these hyperparameters is:")
-        print(random_search.best_score_)
+        # print("")
+        # print("The mean accuracy of a model with these hyperparameters is:")
+        # print(random_search.best_score_)
 
         # random search was better
         best_svc = random_search.best_estimator_
@@ -105,13 +105,15 @@ class ModelNaiveBayes:
         # print(f' predictions: \n {best_svc.predict(X_test)}')
         # print(f' predictions_proba: \n {best_svc.predict_proba(X_test)}')
 
-        # Training accuracy
-        print("The training accuracy is: ")
-        print(accuracy_score(y_train, best_svc.predict(X_train)))
+        # Accuracy
+        print("Accuracy: ")
+        print(f'training: {accuracy_score(y_train, best_svc.predict(X_train))}')
+        print(f'test    : {accuracy_score(y_test, best_svc.predict(X_test))}')
 
-        # Test accuracy
-        print("The test accuracy is: ")
-        print(accuracy_score(y_test, best_svc.predict(X_test)))
+        # F1-score
+        print("F1-score: ")
+        print(f'training: {f1_score(y_train, best_svc.predict(X_train))}')
+        print(f'test    : {f1_score(y_test, best_svc.predict(X_test))}')
 
             # pipeline = Pipeline(['naivebayes'])
             # param_grid = self.get_param_grid()

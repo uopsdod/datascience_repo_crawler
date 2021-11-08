@@ -22,7 +22,7 @@ from myutils.printservice import PrintService
 is_develop_mode = False
 padding_count = 20
 
-class ModelSVC:
+class ModelSVC_bk:
     def __init__(self):
         self.cacheService = CacheService()
         self.printService = PrintService()

@@ -1,6 +1,7 @@
 import json
 
 import pandas as pd
+from sklearn.impute import SimpleImputer
 from sklearn.utils import resample
 
 
@@ -39,6 +40,9 @@ class DatasetService:
 
     def fill_null_val(self, df, feature, default_val):
         df[feature].fillna(default_val, inplace = True)
+
+    def fill_nan_mean(self, df, feature):
+        df[feature].fillna((df[feature].mean()), inplace=True)
 
     def upsample(self, df, class_y):
         value_counts = df[class_y].value_counts()

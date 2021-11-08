@@ -16,34 +16,15 @@ from myutils.printservice import PrintService
 is_develop_mode = False
 padding_count = 20
 
-class ModelNaiveBayes:
+class ModelSVC:
     def __init__(self):
         self.printService = PrintService()
         self.modelname = 'naivebayes'
         pass
 
-    def split_dataset(self, df):
-        # step03: get independent variables(features)(x) & dependent variables(y)
-        # y = df.iloc[:, -1].values
-        # encoder = preprocessing.LabelEncoder()
-        # y = encoder.fit_transform(y)
+    def split_dataset(self, df, dataset_type):
 
-        # step04: give missing data a mockup value
-        # imputer = SimpleImputer(strategy="median")
-        # imputer.fit(X)
-        # X = imputer.transform(X)
-
-        # step03-2: feature selection (remove low variance)
-        # p = .8
-        # sel = VarianceThreshold(threshold=(p * (1 - p)))
-        # new_X = sel.fit_transform(X)
-        # step03-2: feature selection (pick K best)
-        # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
-
-        label_codes = {
-            'Bug': 1,
-            'Not_Bug': 0
-        }
+        label_codes = self.get_label_codes(dataset_type)
 
         # label mapping
         df = df.replace({'label':label_codes})
@@ -58,6 +39,30 @@ class ModelNaiveBayes:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
         return (X_train, X_test, y_train, y_test)
 
+    def get_label_codes(self, dataset_type):
+        label_codes = {}
+        if (dataset_type == "bug"):
+            label_codes = {
+                'Bug': 1,
+                'Not_Bug': 0
+            }
+        elif (dataset_type == "feature"):
+            label_codes = {
+                'Feature': 1,
+                'Not_Feature': 0
+            }
+        elif (dataset_type == "rating"):
+            label_codes = {
+                'Rating': 1,
+                'Not_Rating': 0
+            }
+        elif (dataset_type == "userexperience"):
+            label_codes = {
+                'UserExperience': 1,
+                'Not_UserExperience': 0
+            }
+        return label_codes
+
     def train(self, X_train, X_test, y_train, y_test):
         from sklearn import svm
         from pprint import pprint
@@ -65,25 +70,21 @@ class ModelNaiveBayes:
         from pprint import pprint
         from sklearn.model_selection import RandomizedSearchCV
 
-        svc_0 =svm.SVC(random_state=42)
-        print('Parameters currently in use:\n')
-        pprint(svc_0.get_params())
-
         # let's train a SVM
         svc_0 =svm.SVC(random_state=42)
-        print('Parameters currently in use:\n')
-        pprint(svc_0.get_params())
+        # print('Parameters currently in use:\n')
+        # pprint(svc_0.get_params())
 
         # hyperparameters
         random_grid = self.get_random_grid()
-        pprint(random_grid)
+        # pprint(random_grid)
         # First create the base model to tune
         svc = svm.SVC(random_state=42)
 
         # Definition of the random search
         random_search = RandomizedSearchCV(estimator=svc,
                                            param_distributions=random_grid,
-                                           n_iter=30,
+                                           n_iter=3,
                                            scoring='accuracy',
                                            cv=3,
                                            verbose=1,
@@ -99,44 +100,20 @@ class ModelNaiveBayes:
 
         # random search was better
         best_svc = random_search.best_estimator_
-
-        # fit the model
-        best_svc.fit(X_train, y_train)
-        # print(f' predictions: \n {best_svc.predict(X_test)}')
-        # print(f' predictions_proba: \n {best_svc.predict_proba(X_test)}')
-
-        # Accuracy
-        print("Accuracy: ")
-        print(f'training: {accuracy_score(y_train, best_svc.predict(X_train))}')
-        print(f'test    : {accuracy_score(y_test, best_svc.predict(X_test))}')
-
-        # F1-score
-        print("F1-score: ")
-        print(f'training: {f1_score(y_train, best_svc.predict(X_train))}')
-        print(f'test    : {f1_score(y_test, best_svc.predict(X_test))}')
-
-            # pipeline = Pipeline(['naivebayes'])
-            # param_grid = self.get_param_grid()
-            # best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, y_train, param_grid, pipeline)
-            #
-            # accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
-            # f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
-            #
-            # self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
-            #                                     f1_score_result_test, "", "")
+        return best_svc
 
     def get_random_grid(self):
-        # C = [.0001, .001, .01, 1]
-        # gamma = [.0001, .001, .01, .1, 1, 10, 100]
-        # degree = [1, 2, 3, 4, 5]
-        # kernel = ['linear', 'rbf', 'poly']
-        # probability = [True]
-
-        C = [1]
-        gamma = [100]
-        degree = [1]
-        kernel = ['rbf']
+        C = [.0001, .001, .01, 1]
+        gamma = [.0001, .001, .01, .1, 1, 10, 100]
+        degree = [1, 2, 3, 4, 5]
+        kernel = ['linear', 'rbf', 'poly']
         probability = [True]
+
+        # C = [1]
+        # gamma = [100]
+        # degree = [1]
+        # kernel = ['rbf']
+        # probability = [True]
         random_grid = {'C': C,
                        'kernel': kernel,
                        'gamma': gamma,

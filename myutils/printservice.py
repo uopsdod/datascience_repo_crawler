@@ -16,9 +16,14 @@ class PrintService:
         print(smell_padding, accuracy_padding, f1score_padding)
 
     def print_result_here(self, accuracy_score_result, accuracy_score_result_test, f1_score_result,
-                          f1_score_result_test, operation, smell_type):
+                          f1_score_result_test, operation, type):
+        accuracy_score_result = str(accuracy_score_result)
+        accuracy_score_result_test = str(accuracy_score_result_test)
+        f1_score_result = str(f1_score_result)
+        f1_score_result_test = str(f1_score_result_test)
+
         if operation == "generate":
-            self.print_result(smell_type, accuracy_score_result, f1_score_result)
+            self.print_result(type, accuracy_score_result, f1_score_result)
         elif operation == "compare":
             self.print_result("training set", accuracy_score_result, f1_score_result)
             self.print_result("test set", accuracy_score_result_test, f1_score_result_test)

@@ -25,7 +25,7 @@ class Main:
         df_datasets = {}
         example_count = 0
         for dataset_type in dataset_types:
-            features_gleaned = ["title", "comment", "sentiScore", "label"]
+            features_gleaned = ["title", "comment", "rating", "label", "length_words"]
             df = self.datasetService.load_file(dataset_type, features_gleaned)
             df_datasets[dataset_type] = df
             example_count = example_count + len(df)
@@ -35,7 +35,7 @@ class Main:
             else:
                 df_all = df_all.append(df)
 
-        # dataset_types = ["rating"] # debug
+        dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
 
@@ -53,7 +53,8 @@ class Main:
             # step: fill in null/nan fields
             self.datasetService.fill_null_val(df, "title", "")
             self.datasetService.fill_null_val(df, "comment", "")
-            # self.datasetService.fill_nan_mean(df, "rating")
+            self.datasetService.fill_nan_mean(df, "rating")
+            self.datasetService.fill_nan_mean(df, "length_words")
 
             # step: balance datasets
             df = self.datasetService.balance_dataset(dataset_type, df, "label")
@@ -68,7 +69,10 @@ class Main:
             df_final = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
 
             # step: add metadata features
-            df_final["sentiScore"] = df["sentiScore"]
+            if (dataset_type is not "rating"):
+                df_final["rating"] = df["rating"]
+            else:
+                df_final["length_words"] = df["length_words"]
 
             # step: add result class
             df_final["label"] = df["label"]

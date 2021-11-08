@@ -27,10 +27,10 @@ class DatasetService:
             class1_count, class2_count = self._get_class_count(df, class_y)
 
             print(f'upsampled {dataset_type}: {class1_count} vs {class2_count} ')
-            return False
+            return df
         else:
             print(f'balanced {dataset_type}: {class1_count} vs {class2_count} ')
-        return True
+        return df
 
     def _get_class_count(self, df, class_y):
         value_counts = df[class_y].value_counts()
@@ -70,12 +70,26 @@ class DatasetService:
                                          random_state=123)             # reproducible results
 
         # Combine majority class with upsampled minority class
-        df_upsampled = pd.concat([df_majority, df_minority_upsampled])
+        new_rows_array = []
+        for index, row in df_minority_upsampled.iterrows():
+            new_rows_array.append(row)
+
+        for index, row in df_majority.iterrows():
+            new_rows_array.append(row)
+
+        index_list = list(range(len(new_rows_array)))
+        new_rows_df = pd.DataFrame(new_rows_array, index=index_list)
+        return new_rows_df
+
+        # df_upsampled = df_majority.append(df_minority_upsampled)
+        # df_upsampled.index = pd.RangeIndex(len(df_upsampled.index))
+        # df_upsampled.reset_index()
+        # df_upsampled = pd.concat([df_majority, df_minority_upsampled])
 
         # Display new class counts
         # print(df_upsampled[class_y].value_counts())
 
-        return df_upsampled
+        # return df_upsampled
 
     def _get_dataset_filename(self, dataset_type):
         dateset_folder = "training_dataset"

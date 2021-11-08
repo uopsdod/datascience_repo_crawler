@@ -13,8 +13,8 @@ class DatasetService:
         file_path = self._get_dataset_filename(dataset_type)
         with open(file_path) as json_file:
             data_raw = json.load(json_file)
-            data_gleaned = self._glean_data(data_raw, elem_keys)
-            df = pd.DataFrame(data_gleaned, columns = elem_keys)
+            # data_gleaned = self._glean_data(data_raw, elem_keys)
+            df = pd.DataFrame(data_raw)
             return df
 
     def balance_dataset(self, dataset_type, df, class_y):

@@ -58,7 +58,7 @@ class ModelNaiveBayes:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
         return (X_train, X_test, y_train, y_test)
 
-    def train(self, X_train, y_train, X_test, y_test):
+    def train(self, X_train, X_test, y_train, y_test):
         from sklearn import svm
         from pprint import pprint
         from sklearn import svm

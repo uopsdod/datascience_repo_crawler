@@ -36,26 +36,37 @@ class Main:
             self.nlpservice.lemmatize(df, "title")
             self.nlpservice.lemmatize(df, "comment")
 
+            df_comment_train = self.nlpservice.convert_to_tfidf_text_representation(df, "comment")
+            df_title_train = self.nlpservice.convert_to_tfidf_text_representation(df, "title")
+            df_corpus_train = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
+            df_corpus_train["rating"] = df["rating"]
+            df_corpus_train["label"] = df["label"]
+
+            # X_train_tfidf = X_train_tfidf_df.to_numpy()
+            # y_train_tfidf = df["label"]
+
             # step02-01: split data for training and testing
-            (X_train, X_test, y_train, y_test) = self.modelNaiveBayes.split_dataset(df)
+            (X_train, X_test, y_train, y_test) = self.modelNaiveBayes.split_dataset(df_corpus_train)
             print()
+
+            self.modelNaiveBayes.train(X_train, X_test, y_train, y_test)
 
             # step03: use a format to represent parsed comments - it turns into multiple words as features
             # DOTHIS: figure out this part
 
-            X_train_comment_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_train, "comment")
-            X_train_title_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_train, "title")
-            X_train_tfidf_df = X_train_comment_tfidf_df.merge(X_train_title_tfidf_df, left_index=True, right_index=True) # join by index
-            X_train_tfidf = X_train_tfidf_df.to_numpy()
-
-            y_train_tfidf = y_train
-
-            X_test_comment_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_test, "comment")
-            X_test_title_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_test, "title")
-            X_train_tfidf_df = X_test_comment_tfidf_df.merge(X_test_title_tfidf_df, left_index=True, right_index=True) # join by index
-            X_test_tfidf = X_train_tfidf_df.to_numpy()
-
-            y_test_tfidf = y_test
+            # X_train_comment_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_train, "comment")
+            # X_train_title_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_train, "title")
+            # X_train_tfidf_df = X_train_comment_tfidf_df.merge(X_train_title_tfidf_df, left_index=True, right_index=True) # join by index
+            # X_train_tfidf = X_train_tfidf_df.to_numpy()
+            #
+            # y_train_tfidf = y_train
+            #
+            # X_test_comment_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_test, "comment")
+            # X_test_title_tfidf_df = self.nlpservice.convert_to_tfidf_text_representation(X_test, "title")
+            # X_train_tfidf_df = X_test_comment_tfidf_df.merge(X_test_title_tfidf_df, left_index=True, right_index=True) # join by index
+            # X_test_tfidf = X_train_tfidf_df.to_numpy()
+            #
+            # y_test_tfidf = y_test
 
             # X_train_title_tfidf_features = self.nlpservice.convert_to_tfidf_text_representation(X_train, "title")
             # X_train_tfidf = X_train_comment_tfidf_features.merge(X_train_title_tfidf_features, left_index=True, right_index=True) # join by index
@@ -74,7 +85,7 @@ class Main:
             # X_train_tfidf["rating"] = df["rating"] # ??? HOW TO ADD metadata as extra feature
 
             # step05: train a model?
-            self.modelNaiveBayes.train(X_train_tfidf, y_train_tfidf, X_test_tfidf, y_test_tfidf)
+            # self.modelNaiveBayes.train(X_train_tfidf, y_train_tfidf, X_test_tfidf, y_test_tfidf)
 
             print("")
 

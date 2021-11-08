@@ -57,12 +57,14 @@ class NLPService:
         lemmatized_text = " ".join(lemmatized_list)
         return lemmatized_text
 
-    def convert_to_tfidf_text_representation(self, df, feature_text):
+    def convert_to_tfidf_text_representation(self, X_train, feature_text):
+
+        X_train_feature = X_train[feature_text]
 
         ngram_range = (1,2)
         min_df = 1
         max_df = 1
-        max_features = 300
+        max_features = 200
 
         tfidf_vectorizer = TfidfVectorizer(encoding='utf-8',
                                 ngram_range=ngram_range,
@@ -74,12 +76,18 @@ class NLPService:
                                 norm='l2',
                                 sublinear_tf=True)
 
-        features_tfidf = tfidf_vectorizer.fit_transform(df[feature_text]).toarray()
+        features_tfidf = tfidf_vectorizer.fit_transform(X_train_feature).toarray()
         feature_names_out = tfidf_vectorizer.get_feature_names_out()
         feature_names_out = [feature_text + "_" + elem for elem in feature_names_out]
+        features_tfidf_df = pd.DataFrame(data=features_tfidf, columns=feature_names_out)
+        return features_tfidf_df
 
-        df_tfidf = pd.DataFrame(data=features_tfidf, columns=feature_names_out)
-        return df_tfidf
+        # features_tfidf = tfidf_vectorizer.fit_transform(df[feature_text]).toarray()
+        # feature_names_out = tfidf_vectorizer.get_feature_names_out()
+        # feature_names_out = [feature_text + "_" + elem for elem in feature_names_out]
+
+        # df_tfidf = pd.DataFrame(data=features_tfidf, columns=feature_names_out)
+        # return df_tfidf
 
         # df[feature_text+'_tfidf'] = features_tfidf
         # print(features_tfidf.shape)

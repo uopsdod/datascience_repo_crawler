@@ -8,8 +8,8 @@ Original file is located at
 """
 
 import json
+import ssl
 
- 
 
 def load_file(file_path):
 
@@ -39,7 +39,7 @@ def convert_data(raw_data):
 
 import pandas as pd
 
-data = load_file("Bug_tt.json")
+data = load_file("./training_dataset/Bug_tt.json")
 df = pd.DataFrame(data, columns = ['Text', 'Label'])
 # df.head()
 # df.groupby('Label').nunique().plot(kind='bar')
@@ -86,6 +86,14 @@ df['text_parsed_2'] = df['text_parsed_2'].str.replace("'s", "")
 df.loc[3]['text_parsed_2']
 
 # Downloading punkt and wordnet from NLTK
+
+# ref: https://stackoverflow.com/questions/38916452/nltk-download-ssl-certificate-verify-failed
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 
 nltk.download('punkt')
 

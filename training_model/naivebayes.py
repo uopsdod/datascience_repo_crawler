@@ -18,88 +18,130 @@ padding_count = 20
 
 class ModelNaiveBayes:
     def __init__(self):
-        self.cacheService = CacheService()
         self.printService = PrintService()
         self.modelname = 'naivebayes'
         pass
 
-    def train(self, smell_types, operation, operation_picked):
-        # print(f"train it - {smell_types}")
+    def split_dataset(self, df):
+        # step03: get independent variables(features)(x) & dependent variables(y)
+        # y = df.iloc[:, -1].values
+        # encoder = preprocessing.LabelEncoder()
+        # y = encoder.fit_transform(y)
 
-        # step01: load dataset from file
+        # step04: give missing data a mockup value
+        # imputer = SimpleImputer(strategy="median")
+        # imputer.fit(X)
+        # X = imputer.transform(X)
 
-        if operation == "generate":
-            self.printService.print_result("Smell", "Accuracy(%)", "F1-score(%)")
-        elif operation == "compare":
-            self.printService.print_result(smell_types[0], "Accuracy(%)", "F1-score(%)")
+        # step03-2: feature selection (remove low variance)
+        # p = .8
+        # sel = VarianceThreshold(threshold=(p * (1 - p)))
+        # new_X = sel.fit_transform(X)
+        # step03-2: feature selection (pick K best)
+        # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
 
-        for smell_type in smell_types:
+        label_codes = {
+            'Bug': 1,
+            'Not_Bug': 0
+        }
 
-            if operation_picked == 'retrain':
-                self.cacheService.clear_cache(self.modelname, smell_type)
+        # label mapping
+        df = df.replace({'label':label_codes})
 
-            (accuracy_score_result_cached,
-             accuracy_score_result_test_cached,
-             f1_score_result_cached,
-             f1_score_result_test_cached) = self.cacheService.use_cache(self.modelname, smell_type)
+        X = df.iloc[:, :-1].copy()
+        y = df['label']
 
-            if accuracy_score_result_cached is not None:
-                self.printService.print_result_here(accuracy_score_result_cached, accuracy_score_result_test_cached, f1_score_result_cached,
-                                                    f1_score_result_test_cached, operation, smell_type)
-                continue
+        # X = X.to_numpy()
+        # y = y.to_numpy()
 
-            dataset_filename = self._get_dataset_filename(smell_type)
-            if dataset_filename == "none":
-                return
-            data = arff.loadarff(dataset_filename)
+    # step05: split into training dataframe & testing dataframe
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
+        return (X_train, X_test, y_train, y_test)
 
+    def train(self, X_train, y_train, X_test, y_test):
+        from sklearn import svm
+        from pprint import pprint
+        from sklearn import svm
+        from pprint import pprint
+        from sklearn.model_selection import RandomizedSearchCV
 
-            # step02: get a dataframe from dataset
-            df = pd.DataFrame(data[0])
+        svc_0 =svm.SVC(random_state=42)
+        print('Parameters currently in use:\n')
+        pprint(svc_0.get_params())
 
-            # step03: get independent variables(features)(x) & dependent variables(y)
-            Y_data = df.iloc[:, -1].values
-            encoder = preprocessing.LabelEncoder()
-            y = encoder.fit_transform(Y_data)
+        # let's train a SVM
+        svc_0 =svm.SVC(random_state=42)
+        print('Parameters currently in use:\n')
+        pprint(svc_0.get_params())
 
-            # step04: give missing data a mockup value
-            X_copy = df.iloc[:, :-1].copy()
-            imputer = SimpleImputer(strategy="median")
-            imputer.fit(X_copy)
-            new_X = imputer.transform(X_copy) # ? what is the difference btwn fit vs. transform
-            # new_X_df = pd.DataFrame(new_X, columns=X_copy.columns, index=X_copy.index)
+        # hyperparameters
+        random_grid = self.get_random_grid()
+        pprint(random_grid)
+        # First create the base model to tune
+        svc = svm.SVC(random_state=42)
 
-            # step03-2: feature selection (remove low variance)
-            p = .8
-            sel = VarianceThreshold(threshold=(p * (1 - p)))
-            new_X = sel.fit_transform(new_X)
-            # step03-2: feature selection (pick K best)
-            # new_X = SelectKBest(chi2, k=60).fit_transform(new_X, y)
+        # Definition of the random search
+        random_search = RandomizedSearchCV(estimator=svc,
+                                           param_distributions=random_grid,
+                                           n_iter=30,
+                                           scoring='accuracy',
+                                           cv=3,
+                                           verbose=1,
+                                           random_state=42)
 
-            # step05: split into training dataframe & testing dataframe
-            X_train, X_test, y_train, y_test = train_test_split(new_X, y, test_size=0.15, random_state=67) # report: increase test_size help to avoid 0 F1-score I think
+        # Fit the random search model
+        random_search.fit(X_train, y_train)
+        print("The best hyperparameters from Random Search are:")
+        print(random_search.best_params_)
+        print("")
+        print("The mean accuracy of a model with these hyperparameters is:")
+        print(random_search.best_score_)
 
-            # step06-2: train it with multiple combinations
-            randomforest_pipe = Pipeline([
-                ('naivebayes', GaussianNB()),
-            ])
-            param_grid = self.get_param_grid()
-            best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, y_train, param_grid, randomforest_pipe)
+        # random search was better
+        best_svc = random_search.best_estimator_
 
-            accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
-            f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
+        # fit the model
+        best_svc.fit(X_train, y_train)
+        # print(f' predictions: \n {best_svc.predict(X_test)}')
+        # print(f' predictions_proba: \n {best_svc.predict_proba(X_test)}')
 
-            # cache
-            self.cacheService.update_cache(accuracy_score_result,
-                                           accuracy_score_result_test,
-                                           f1_score_result,
-                                           f1_score_result_test,
-                                           self.modelname,
-                                           smell_type)
+        # Training accuracy
+        print("The training accuracy is: ")
+        print(accuracy_score(y_train, best_svc.predict(X_train)))
 
-            self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
-                                                f1_score_result_test, operation, smell_type)
+        # Test accuracy
+        print("The test accuracy is: ")
+        print(accuracy_score(y_test, best_svc.predict(X_test)))
 
+            # pipeline = Pipeline(['naivebayes'])
+            # param_grid = self.get_param_grid()
+            # best_model, accuracy_score_result, f1_score_result = self.train_helper(X_train, y_train, param_grid, pipeline)
+            #
+            # accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
+            # f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
+            #
+            # self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+            #                                     f1_score_result_test, "", "")
+
+    def get_random_grid(self):
+        # C = [.0001, .001, .01, 1]
+        # gamma = [.0001, .001, .01, .1, 1, 10, 100]
+        # degree = [1, 2, 3, 4, 5]
+        # kernel = ['linear', 'rbf', 'poly']
+        # probability = [True]
+
+        C = [1]
+        gamma = [100]
+        degree = [1]
+        kernel = ['rbf']
+        probability = [True]
+        random_grid = {'C': C,
+                       'kernel': kernel,
+                       'gamma': gamma,
+                       'degree': degree,
+                       'probability': probability
+                       }
+        return random_grid
 
     def get_param_grid(self):
 

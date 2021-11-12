@@ -35,9 +35,10 @@ class Main:
             else:
                 df_all = df_all.append(df)
 
-        dataset_types = ["rating"] # debug
+        # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
+        # dataset_types = ["rating", "feature"] # debug
 
         models_svc = {}
         accuracy_sum = 0
@@ -55,6 +56,7 @@ class Main:
             self.datasetService.fill_null_val(df, "comment", "")
             self.datasetService.fill_nan_mean(df, "rating")
             self.datasetService.fill_nan_mean(df, "length_words")
+            self.datasetService.fill_nan_mean(df, "sentiScore")
 
             # step: balance datasets
             df = self.datasetService.balance_dataset(dataset_type, df, "label")
@@ -69,10 +71,17 @@ class Main:
             df_final = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
 
             # step: add metadata features
-            if (dataset_type is not "rating"):
+            if (dataset_type is "rating"):
+                pass
+            elif (dataset_type is "bug"):
                 df_final["rating"] = df["rating"]
-            else:
-                df_final["length_words"] = df["length_words"]
+            elif (dataset_type is "feature"):
+                df_final["rating"] = df["rating"]
+            elif (dataset_type is "userexperience"):
+                df_final["rating"] = df["rating"]
+
+            df_final["length_words"] = df["length_words"]
+            df_final["sentiScore"] = df["sentiScore"]
 
             # step: add result class
             df_final["label"] = df["label"]

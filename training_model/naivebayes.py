@@ -103,17 +103,17 @@ class ModelSVC:
         return best_svc
 
     def get_random_grid(self):
-        C = [.0001, .001, .01, 1]
-        gamma = [.0001, .001, .01, .1, 1, 10, 100]
-        degree = [1, 2, 3, 4, 5]
-        kernel = ['linear', 'rbf', 'poly']
-        probability = [True]
-
-        # C = [1]
-        # gamma = [100]
-        # degree = [1]
-        # kernel = ['rbf']
+        # C = [.0001, .001, .01, 1]
+        # gamma = [.0001, .001, .01, .1, 1, 10, 100]
+        # degree = [1, 2, 3, 4, 5]
+        # kernel = ['linear', 'rbf', 'poly']
         # probability = [True]
+
+        C = [1]
+        gamma = [100]
+        degree = [1]
+        kernel = ['rbf']
+        probability = [True]
         random_grid = {'C': C,
                        'kernel': kernel,
                        'gamma': gamma,

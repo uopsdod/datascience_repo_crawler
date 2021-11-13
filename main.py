@@ -12,6 +12,7 @@ from myutils.datasetservice import DatasetService
 from myutils.nlpservice import NLPService
 from myutils.printservice import PrintService
 from training_model.decisiontree_v2 import ModelDecisionTree
+from training_model.logistic_regression import ModelLogisticRegression
 from training_model.naivebayes_v2 import ModelNaiveBayes
 from training_model.randomforest_v2 import RandomForest
 from training_model.svc_v2 import ModelSVC
@@ -21,6 +22,7 @@ from training_model.svc_v2 import ModelSVC
 
 class Main:
     def __init__(self):
+        self.modelLogisticRegression = ModelLogisticRegression()
         self.printService = PrintService()
         self.datasetService = DatasetService()
         self.nlpservice = NLPService()
@@ -37,13 +39,14 @@ class Main:
         # dataset_types = ["bug"] # debug
         # dataset_types = ["rating", "feature"] # debug
 
-        # model_types = ["svc", "naivebayes", "decisiontree", "randomforest"]
+        # model_types = ["logisticregression", "svc", "naivebayes", "decisiontree", "randomforest"]
         # model_types = ["naivebayes", "decisiontree", "randomforest"]
         # model_types = ["svc", "naivebayes", "decisiontree"]
         # model_types = ["naivebayes"]
         model_types = ["svc"]
         # model_types = ["decisiontree"]
         # model_types = ["randomforest"]
+        # model_types = ["logisticregression"]
 
         df_all = None
         df_datasets = {}
@@ -142,6 +145,8 @@ class Main:
                     accuracy_now = self.modelDecisionTree.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "randomforest"):
                     accuracy_now = self.modelRandomForest.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                elif (model_type == "logisticregression"):
+                    accuracy_now = self.modelLogisticRegression.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
 
                 accuracy_sum = accuracy_sum + accuracy_now
 

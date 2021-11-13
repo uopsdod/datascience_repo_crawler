@@ -57,6 +57,6 @@ class ModelLogisticRegression:
         return best_model
 
     def get_param_grid(self):
-        multi_class = 'ovr'
+        multi_class = ['ovr']
         random_grid = {'logisticregression__multi_class': multi_class}
         return random_grid

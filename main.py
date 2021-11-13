@@ -28,8 +28,7 @@ class Main:
         df_datasets = {}
         example_count = 0
         for dataset_type in dataset_types:
-            features_gleaned = ["title", "comment", "rating", "label", "length_words"]
-            df = self.datasetService.load_file(dataset_type, features_gleaned)
+            df = self.datasetService.load_file(dataset_type)
             df_datasets[dataset_type] = df
             example_count = example_count + len(df)
 
@@ -40,7 +39,7 @@ class Main:
 
         # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
-        dataset_types = ["bug"] # debug
+        # dataset_types = ["bug"] # debug
         # dataset_types = ["rating", "feature"] # debug
 
         models_svc = {}
@@ -52,8 +51,10 @@ class Main:
             # df = self.datasetService.load_file(dataset_type, features_gleaned)
 
             label_codes = self.modelSVC.get_label_codes(dataset_type)
-            df = self.convert_to_df(df_all, df_datasets[dataset_type], label_codes)
+            df = self.datasetService.convert_to_df(df_all, df_datasets[dataset_type], label_codes)
 
+            # data clean - convert to numeric value - fee type
+            self.datasetService.convert_fee_type_to_numeric(df)
             # nlp - clean up texts
             self.nlpservice.remove_punctuation_signs(df, "comment")
             self.nlpservice.remove_stopwords(df, "comment")
@@ -70,18 +71,8 @@ class Main:
             # feature scaling
             self.datasetService.standardize_feature(df, "rating")
             self.datasetService.standardize_feature(df, "sentiScore")
+            self.datasetService.standardize_feature(df, "fee")
             # self.datasetService.standardize_feature(df, "length_word_cleaned") # not good at all - don't use it
-
-            # self.datasetService.scale_feature(df, "length_word_cleaned")
-            # mean_age = df['rating'].mean()
-            # max_age = df['rating'].max()
-            # min_age = df['rating'].min()
-            #
-            # df['rating'] = df['rating'].apply(lambda x: (x - mean_age ) / (max_age -min_age ))
-
-            # min_max_scaler = preprocessing.MinMaxScaler()
-            # cols_to_norm = ['rating','length_word_cleaned', 'sentiScore']
-            # df[cols_to_norm] = min_max_scaler.fit_transform(df[cols_to_norm])
 
             # step: balance datasets
             df = self.datasetService.balance_dataset(dataset_type, df, "label")
@@ -109,6 +100,7 @@ class Main:
             df_final["rating"] = df["rating"]
             df_final["length_word_cleaned"] = df["length_word_cleaned"]
             df_final["sentiScore"] = df["sentiScore"]
+            df_final["fee"] = df["fee"]
 
             # step: add result class
             df_final["label"] = df["label"]
@@ -149,27 +141,6 @@ class Main:
         mean_accuracy_overall = accuracy_sum / len(models_svc)
         print(f'mean_accuracy_overall: {mean_accuracy_overall} \n')
 
-    def convert_to_df(self, df_all, df_dataset, label_codes):
-
-        label_positive = list(label_codes)[0]
-        label_negative = list(label_codes)[1]
-
-        comments_series = df_dataset['label']
-        comments_series.index = df_dataset['comment']
-        comments_dict = comments_series.to_dict()
-
-        new_rows_array = []
-        for index, row in df_all.iterrows():
-            comment_now = row['comment']
-            if ( comment_now in comments_dict and comments_dict[comment_now] == label_positive):
-                row['label'] = label_positive
-                new_rows_array.append(row)
-            else:
-                row['label'] = label_negative
-                new_rows_array.append(row)
-
-        new_rows_df = pd.DataFrame(new_rows_array)
-        return new_rows_df
 
 
 # entry point

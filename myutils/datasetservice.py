@@ -9,7 +9,7 @@ class DatasetService:
     def __init__(self):
         pass
 
-    def load_file(self, dataset_type, elem_keys):
+    def load_file(self, dataset_type):
         file_path = self._get_dataset_filename(dataset_type)
         with open(file_path) as json_file:
             data_raw = json.load(json_file)
@@ -130,3 +130,40 @@ class DatasetService:
         std = df[feature_name].std()
 
         df[feature_name] = df[feature_name].apply(lambda x: (x - mean) / (std))
+
+    def convert_to_df(self, df_all_donotchange, df_dataset, label_codes):
+
+        label_positive = list(label_codes)[0]
+        label_negative = list(label_codes)[1]
+
+        comments_series = df_dataset['label']
+        comments_series.index = df_dataset['comment']
+        comments_dict = comments_series.to_dict()
+
+        new_rows_array = []
+        for index, row in df_all_donotchange.iterrows():
+            # convert comment as one-versus-all approach
+            comment_now = row['comment']
+            if ( comment_now in comments_dict and comments_dict[comment_now] == label_positive):
+                row['label'] = label_positive
+            else:
+                row['label'] = label_negative
+
+            new_rows_array.append(row)
+
+        new_rows_df = pd.DataFrame(new_rows_array)
+        return new_rows_df
+
+    def convert_fee_type_to_numeric(self, df_all):
+
+        for index, row in df_all.iterrows():
+            # convert fee to number representation for training
+            fee_type = row['fee']
+            fee_val = 0
+            if (fee_type == 'paid'):
+                fee_val = -1
+            elif (fee_type == 'free'):
+                fee_val = 1
+            else:
+                fee_val = 0
+            df_all.loc[index, 'fee'] = fee_val

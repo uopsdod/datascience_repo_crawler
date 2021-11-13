@@ -37,13 +37,12 @@ class Main:
             else:
                 df_all = df_all.append(df)
 
-        # dataset_types = ["rating"] # debug
+        dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
         # dataset_types = ["rating", "feature"] # debug
 
         models_svc = {}
-        accuracy_sum = 0
 
         for dataset_type in dataset_types:
             # step: get the features you need from raw dataset
@@ -108,39 +107,43 @@ class Main:
             # step: split data for training and testing
             (X_train, X_test, y_train, y_test) = self.modelSVC.split_dataset(df_final, dataset_type)
 
-
-
             # X_train_minmax = min_max_scaler.transform(X_train)
             # X_train["length_word_cleaned"] = X_train_minmax["length_word_cleaned"]
             # X_test_minmax = min_max_scaler.transform(X_test)
 
-            # step: train it
-            best_svc = self.modelSVC.train(X_train, X_test, y_train, y_test)
-            models_svc[dataset_type] = best_svc
+            model_types = ["svc", "naivebayes"]
 
-            # fit the model
-            best_svc.fit(X_train, y_train)
-            # print(f' predictions: \n {best_svc.predict(X_test)}')
-            # print(f' predictions_proba: \n {best_svc.predict_proba(X_test)}')
+            for model_type in model_types:
+                if (model_type == 'svc'):
+                    accuracy_sum = self.train_model_svc(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                elif (model_types == 'naivebayes'):
+                    accuracy_sum = 0
+                mean_accuracy_overall = accuracy_sum / len(models_svc)
+                print(f'mean_accuracy_overall: {mean_accuracy_overall} \n')
 
-            # Accuracy
-            accuracy_score_result = int(accuracy_score(y_train, best_svc.predict(X_train)) * 100)
-            accuracy_score_result_test = int(accuracy_score(y_test, best_svc.predict(X_test)) * 100)
-            accuracy_sum = accuracy_sum + accuracy_score_result_test
 
-            # F1-score
-            f1_score_result = int(f1_score(y_train, best_svc.predict(X_train)) * 100)
-            f1_score_result_test = int(f1_score(y_test, best_svc.predict(X_test)) * 100)
+    def train_model_svc(self, models_svc, dataset_type, X_test, X_train, y_test, y_train):
 
-            self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
-            self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
-                                                f1_score_result_test, "generate", dataset_type)
+        accuracy_sum = 0
 
-            # print()
-
-        mean_accuracy_overall = accuracy_sum / len(models_svc)
-        print(f'mean_accuracy_overall: {mean_accuracy_overall} \n')
-
+        # 1: train SVC
+        best_svc = self.modelSVC.train(X_train, X_test, y_train, y_test)
+        models_svc[dataset_type] = best_svc
+        # fit the model
+        best_svc.fit(X_train, y_train)
+        # print(f' predictions: \n {best_svc.predict(X_test)}')
+        # print(f' predictions_proba: \n {best_svc.predict_proba(X_test)}')
+        # Accuracy
+        accuracy_score_result = int(accuracy_score(y_train, best_svc.predict(X_train)) * 100)
+        accuracy_score_result_test = int(accuracy_score(y_test, best_svc.predict(X_test)) * 100)
+        accuracy_sum = accuracy_sum + accuracy_score_result_test
+        # F1-score
+        f1_score_result = int(f1_score(y_train, best_svc.predict(X_train)) * 100)
+        f1_score_result_test = int(f1_score(y_test, best_svc.predict(X_test)) * 100)
+        self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
+        self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+                                            f1_score_result_test, "generate", dataset_type)
+        return accuracy_sum
 
 
 # entry point

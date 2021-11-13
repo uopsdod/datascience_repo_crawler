@@ -117,3 +117,16 @@ class DatasetService:
 
     def get_word_count_of_cleaned_comment(self, df):
         return df['comment'].str.split().str.len()
+
+    def normalize_feature(self, df, feature_name):
+        mean = df[feature_name].mean()
+        max = df[feature_name].max()
+        min = df[feature_name].min()
+
+        df[feature_name] = df[feature_name].apply(lambda x: (x - mean) / (max - min))
+
+    def standardize_feature(self, df, feature_name):
+        mean = df[feature_name].mean()
+        std = df[feature_name].std()
+
+        df[feature_name] = df[feature_name].apply(lambda x: (x - mean) / (std))

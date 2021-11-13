@@ -2,6 +2,7 @@ import nltk
 import pandas as pd
 import numpy as np
 from nltk.corpus import stopwords
+from sklearn import preprocessing
 from sklearn.metrics import accuracy_score, f1_score
 
 from myutils.datasetservice import DatasetService
@@ -39,8 +40,8 @@ class Main:
 
         # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
-        # dataset_types = ["bug"] # debug
-        dataset_types = ["rating", "feature"] # debug
+        dataset_types = ["bug"] # debug
+        # dataset_types = ["rating", "feature"] # debug
 
         models_svc = {}
         accuracy_sum = 0
@@ -53,6 +54,7 @@ class Main:
             label_codes = self.modelSVC.get_label_codes(dataset_type)
             df = self.convert_to_df(df_all, df_datasets[dataset_type], label_codes)
 
+            # nlp - clean up texts
             self.nlpservice.remove_punctuation_signs(df, "comment")
             self.nlpservice.remove_stopwords(df, "comment")
 
@@ -64,6 +66,22 @@ class Main:
             self.datasetService.fill_nan_mean(df, "rating")
             self.datasetService.fill_nan_mean(df, "length_word_cleaned")
             self.datasetService.fill_nan_mean(df, "sentiScore")
+
+            # feature scaling
+            self.datasetService.standardize_feature(df, "rating")
+            self.datasetService.standardize_feature(df, "sentiScore")
+            # self.datasetService.standardize_feature(df, "length_word_cleaned") # not good at all - don't use it
+
+            # self.datasetService.scale_feature(df, "length_word_cleaned")
+            # mean_age = df['rating'].mean()
+            # max_age = df['rating'].max()
+            # min_age = df['rating'].min()
+            #
+            # df['rating'] = df['rating'].apply(lambda x: (x - mean_age ) / (max_age -min_age ))
+
+            # min_max_scaler = preprocessing.MinMaxScaler()
+            # cols_to_norm = ['rating','length_word_cleaned', 'sentiScore']
+            # df[cols_to_norm] = min_max_scaler.fit_transform(df[cols_to_norm])
 
             # step: balance datasets
             df = self.datasetService.balance_dataset(dataset_type, df, "label")
@@ -97,6 +115,12 @@ class Main:
 
             # step: split data for training and testing
             (X_train, X_test, y_train, y_test) = self.modelSVC.split_dataset(df_final, dataset_type)
+
+
+
+            # X_train_minmax = min_max_scaler.transform(X_train)
+            # X_train["length_word_cleaned"] = X_train_minmax["length_word_cleaned"]
+            # X_test_minmax = min_max_scaler.transform(X_test)
 
             # step: train it
             best_svc = self.modelSVC.train(X_train, X_test, y_train, y_test)
@@ -146,6 +170,7 @@ class Main:
 
         new_rows_df = pd.DataFrame(new_rows_array)
         return new_rows_df
+
 
 # entry point
 main = Main();

@@ -1,4 +1,5 @@
 from sklearn import svm
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
@@ -80,7 +81,7 @@ class ModelSVC:
     #     return accuracy_sum
 
     def train_model(self, models_svc, dataset_type, X_test, X_train, y_test, y_train):
-        self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
+        # self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
 
         # step06-2: train it with multiple combinations
         pipeline = Pipeline([
@@ -90,6 +91,11 @@ class ModelSVC:
         best_model = self.train_helper(X_train, y_train, param_grid, pipeline)
         models_svc[dataset_type] = best_model
 
+        mysvc = pipeline.named_steps["svc"]
+
+        # fit the model
+        best_model.fit(X_train, y_train)
+
         # Accuracy
         accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
         accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
@@ -97,9 +103,6 @@ class ModelSVC:
         # F1-score
         f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
         f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
-
-        # fit the model
-        best_model.fit(X_train, y_train)
 
         self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
                                             f1_score_result_test, "generate", dataset_type)
@@ -125,6 +128,7 @@ class ModelSVC:
         # kernel = ['linear', 'rbf', 'poly']
         # probability = [True]
 
+        # the best hyperparameter (to speed up training tryouts afterwards)
         C = [1]
         gamma = [100]
         degree = [1]

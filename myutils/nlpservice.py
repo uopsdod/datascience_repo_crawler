@@ -63,7 +63,8 @@ class NLPService:
 
         X_train_feature = X_train[feature_text]
 
-        ngram_range = (1,2) # unigrams and bigrams
+        ngram_range = (1,1) # unigram
+        # ngram_range = (1,2) # unigrams and bigrams
         min_df = 1
         max_df = 1
         max_features = 20

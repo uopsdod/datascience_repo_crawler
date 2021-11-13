@@ -20,7 +20,7 @@ class RandomForest:
         pass
 
     def train_model(self, models_svc, dataset_type, X_test, X_train, y_test, y_train):
-        self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
+        # self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
 
         # step06-2: train it with multiple combinations
         pipeline = Pipeline([
@@ -30,6 +30,9 @@ class RandomForest:
         best_model = self.train_helper(X_train, y_train, param_grid, pipeline)
         models_svc[dataset_type] = best_model
 
+        # fit the model
+        best_model.fit(X_train, y_train)
+
         # Accuracy
         accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
         accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
@@ -37,9 +40,6 @@ class RandomForest:
         # F1-score
         f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
         f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
-
-        # fit the model
-        best_model.fit(X_train, y_train)
 
         self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
                                             f1_score_result_test, "generate", dataset_type)

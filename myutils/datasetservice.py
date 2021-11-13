@@ -5,7 +5,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 
-
+is_develop_mode = False
 class DatasetService:
     def __init__(self):
         pass
@@ -22,15 +22,18 @@ class DatasetService:
         class1_count, class2_count = self._get_class_count(df, class_y)
 
         if (class1_count != class2_count):
-            print(f'unbalanced {dataset_type}: {class1_count} vs {class2_count} ')
+            if (is_develop_mode):
+                print(f'unbalanced {dataset_type}: {class1_count} vs {class2_count} ')
 
             df = self.upsample(df, class_y)
             class1_count, class2_count = self._get_class_count(df, class_y)
 
-            print(f'upsampled {dataset_type}: {class1_count} vs {class2_count} ')
+            if (is_develop_mode):
+                print(f'upsampled {dataset_type}: {class1_count} vs {class2_count} ')
             return df
         else:
-            print(f'balanced {dataset_type}: {class1_count} vs {class2_count} ')
+            if (is_develop_mode):
+                print(f'balanced {dataset_type}: {class1_count} vs {class2_count} ')
         return df
 
     def _get_class_count(self, df, class_y):

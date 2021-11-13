@@ -31,7 +31,20 @@ class Main:
 
     def start(self):
 
-        dataset_types = ["bug", "feature", "rating", "userexperience"]
+        dataset_types = ["feature", "bug", "rating", "userexperience"]
+        # dataset_types = ["rating"] # debug
+        # dataset_types = ["feature"] # debug
+        # dataset_types = ["bug"] # debug
+        # dataset_types = ["rating", "feature"] # debug
+
+        # model_types = ["svc", "naivebayes", "decisiontree", "randomforest"]
+        # model_types = ["naivebayes", "decisiontree", "randomforest"]
+        # model_types = ["svc", "naivebayes", "decisiontree"]
+        # model_types = ["naivebayes"]
+        model_types = ["svc"]
+        # model_types = ["decisiontree"]
+        # model_types = ["randomforest"]
+
         df_all = None
         df_datasets = {}
         example_count = 0
@@ -45,25 +58,13 @@ class Main:
             else:
                 df_all = df_all.append(df)
 
-        # dataset_types = ["rating"] # debug
-        # dataset_types = ["feature"] # debug
-        dataset_types = ["bug"] # debug
-        # dataset_types = ["rating", "feature"] # debug
 
         models_svc = {}
-
-        model_types = ["svc", "naivebayes", "decisiontree", "randomforest"]
-
-        # debug
-        # model_types = ["naivebayes"]
-        model_types = ["svc"]
-        # model_types = ["decisiontree"]
-        # model_types = ["randomforest"]
 
         for model_type in model_types:
             accuracy_sum = 0
 
-            self.printService.print_result(f'[{model_type}]', "", "")
+            self.printService.print_result(f'[{model_type}]', "Accuracy(%)", "F1-score(%)")
             for dataset_type in dataset_types:
                 # step: get the features you need from raw dataset
                 # features_gleaned = ["title", "comment", "rating", "label"]
@@ -74,9 +75,7 @@ class Main:
 
                 # data clean - convert to numeric value - fee type
                 self.datasetService.convert_fee_type_to_numeric(df)
-                # nlp - clean up texts
-                self.nlpservice.remove_punctuation_signs(df, "comment")
-                self.nlpservice.remove_stopwords(df, "comment")
+
 
                 df["length_word_cleaned"] = self.datasetService.get_word_count_of_cleaned_comment(df)
 
@@ -96,11 +95,15 @@ class Main:
                 # step: balance datasets
                 df = self.datasetService.balance_dataset(dataset_type, df, "label")
 
-                # step: NLP - lemmatization
+                # step: NLP
                 self.nlpservice.lemmatize(df, "title")
                 self.nlpservice.lemmatize(df, "comment")
+                self.nlpservice.remove_punctuation_signs(df, "comment")
+                self.nlpservice.remove_stopwords(df, "comment")
 
                 # step: NLP - convert a sentence to BOW (TF-IDF)
+                ngram_range_bigram = (1, 2)
+                ngram_range = (1)
                 df_comment_train = self.nlpservice.convert_to_tfidf_text_representation(df, "comment")
                 df_title_train = self.nlpservice.convert_to_tfidf_text_representation(df, "title")
                 df_final = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
@@ -134,7 +137,7 @@ class Main:
                 if (model_type == "svc"):
                     accuracy_now = self.modelSVC.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "naivebayes"):
-                    accuracy_now = self.modelNaiveBayes.train_model_naivebayes(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                    accuracy_now = self.modelNaiveBayes.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "decisiontree"):
                     accuracy_now = self.modelDecisionTree.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "randomforest"):

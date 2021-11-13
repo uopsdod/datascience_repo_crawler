@@ -1,21 +1,20 @@
-import numpy as np
-from sklearn.naive_bayes import GaussianNB
-from sklearn.pipeline import Pipeline
+from matplotlib import pyplot as plt
+from sklearn import svm
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.pipeline import Pipeline
 
 from myutils.printservice import PrintService
 
 is_develop_mode = False
 padding_count = 20
 
-class ModelDecisionTree:
+class ModelLogisticRegression:
     def __init__(self):
-        # self.cacheService = CacheService()
         self.printService = PrintService()
-        self.modelname = 'decisiontree'
+        self.modelname = 'logisticregression'
         pass
 
     def train_model(self, models_svc, dataset_type, X_test, X_train, y_test, y_train):
@@ -23,7 +22,7 @@ class ModelDecisionTree:
 
         # step06-2: train it with multiple combinations
         pipeline = Pipeline([
-            ('decisiontree', DecisionTreeClassifier()),
+            ('logisticregression', LogisticRegression(random_state=42)),
         ])
         param_grid = self.get_param_grid()
         best_model = self.train_helper(X_train, y_train, param_grid, pipeline)
@@ -58,14 +57,6 @@ class ModelDecisionTree:
         return best_model
 
     def get_param_grid(self):
-        depths = np.arange(1, 6)
-        min_samples = np.arange(2, 6)  # must be > than 1
-        min_samples_leaf = np.arange(1, 5)
-        # num_leafs = [1, 5, 10, 20, 50, 100]
-        param_grid = {'decisiontree__criterion': ['gini', 'entropy'],
-                      'decisiontree__splitter': ["best", "random"],
-                      'decisiontree__max_depth': depths,
-                      'decisiontree__min_samples_split': min_samples,
-                      'decisiontree__min_samples_leaf': min_samples_leaf
-                      }
-        return param_grid
+        multi_class = 'ovr'
+        random_grid = {'logisticregression__multi_class': multi_class}
+        return random_grid

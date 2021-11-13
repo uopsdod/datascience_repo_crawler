@@ -22,47 +22,6 @@ class ModelSVC:
         self.modelname = 'naivebayes'
         pass
 
-    def split_dataset(self, df, dataset_type):
-
-        label_codes = self.get_label_codes(dataset_type)
-
-        # label mapping
-        df = df.replace({'label':label_codes})
-
-        X = df.iloc[:, :-1].copy()
-        y = df['label']
-
-        # X = X.to_numpy()
-        # y = y.to_numpy()
-
-    # step05: split into training dataframe & testing dataframe
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
-        return (X_train, X_test, y_train, y_test)
-
-    def get_label_codes(self, dataset_type):
-        label_codes = {}
-        if (dataset_type == "bug"):
-            label_codes = {
-                'Bug': 1,
-                'Not_Bug': 0
-            }
-        elif (dataset_type == "feature"):
-            label_codes = {
-                'Feature': 1,
-                'Not_Feature': 0
-            }
-        elif (dataset_type == "rating"):
-            label_codes = {
-                'Rating': 1,
-                'Not_Rating': 0
-            }
-        elif (dataset_type == "userexperience"):
-            label_codes = {
-                'UserExperience': 1,
-                'Not_UserExperience': 0
-            }
-        return label_codes
-
     def train(self, X_train, X_test, y_train, y_test):
         from sklearn import svm
         from pprint import pprint
@@ -92,8 +51,9 @@ class ModelSVC:
 
         # Fit the random search model
         random_search.fit(X_train, y_train)
-        print("The best hyperparameters from Random Search are:")
-        print(random_search.best_params_)
+        if (is_develop_mode):
+            print("The best hyperparameters from Random Search are:")
+            print(random_search.best_params_)
         # print("")
         # print("The mean accuracy of a model with these hyperparameters is:")
         # print(random_search.best_score_)
@@ -174,3 +134,25 @@ class ModelSVC:
 
         return dateset_folder + "/" + dateset_file
 
+    def train_model_svc(self, models_svc, dataset_type, X_test, X_train, y_test, y_train):
+
+        accuracy_sum = 0
+
+        # 1: train SVC
+        best_svc = self.train(X_train, X_test, y_train, y_test)
+        models_svc[dataset_type] = best_svc
+        # fit the model
+        best_svc.fit(X_train, y_train)
+        # print(f' predictions: \n {best_svc.predict(X_test)}')
+        # print(f' predictions_proba: \n {best_svc.predict_proba(X_test)}')
+        # Accuracy
+        accuracy_score_result = int(accuracy_score(y_train, best_svc.predict(X_train)) * 100)
+        accuracy_score_result_test = int(accuracy_score(y_test, best_svc.predict(X_test)) * 100)
+        accuracy_sum = accuracy_sum + accuracy_score_result_test
+        # F1-score
+        f1_score_result = int(f1_score(y_train, best_svc.predict(X_train)) * 100)
+        f1_score_result_test = int(f1_score(y_test, best_svc.predict(X_test)) * 100)
+        self.printService.print_result(dataset_type, "Accuracy(%)", "F1-score(%)")
+        self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+                                            f1_score_result_test, "generate", dataset_type)
+        return accuracy_sum

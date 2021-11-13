@@ -18,6 +18,7 @@ class NLPService:
     def __init__(self):
         # Downloading punkt and wordnet from NLTK
         self._download_nltk()
+
         pass
 
     def _download_nltk(self):
@@ -31,6 +32,7 @@ class NLPService:
         # nltk.download()
         nltk.download('punkt', halt_on_error=False)
         nltk.download('wordnet', halt_on_error=False)
+        nltk.download('stopwords')
 
     def lemmatize(self, df, feautre_name):
         wordnet_lemmatizer = WordNetLemmatizer()
@@ -101,7 +103,6 @@ class NLPService:
             # df[feature_name] = feature_replaced
 
     def remove_stopwords(self, df, feature_name):
-        nltk.download('stopwords')
         stop_words = list(stopwords.words('english'))
         for stop_word in stop_words:
             regex_stopword = r"\b" + stop_word + r"\b"

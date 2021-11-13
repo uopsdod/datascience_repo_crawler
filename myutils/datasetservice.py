@@ -2,6 +2,7 @@ import json
 
 import pandas as pd
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
 
 
@@ -167,3 +168,44 @@ class DatasetService:
             else:
                 fee_val = 0
             df_all.loc[index, 'fee'] = fee_val
+
+    def get_label_codes(self, dataset_type):
+        label_codes = {}
+        if (dataset_type == "bug"):
+            label_codes = {
+                'Bug': 1,
+                'Not_Bug': 0
+            }
+        elif (dataset_type == "feature"):
+            label_codes = {
+                'Feature': 1,
+                'Not_Feature': 0
+            }
+        elif (dataset_type == "rating"):
+            label_codes = {
+                'Rating': 1,
+                'Not_Rating': 0
+            }
+        elif (dataset_type == "userexperience"):
+            label_codes = {
+                'UserExperience': 1,
+                'Not_UserExperience': 0
+            }
+        return label_codes
+
+    def split_dataset(self, df, dataset_type):
+
+        label_codes = self.get_label_codes(dataset_type)
+
+        # label mapping
+        df = df.replace({'label':label_codes})
+
+        X = df.iloc[:, :-1].copy()
+        y = df['label']
+
+        # X = X.to_numpy()
+        # y = y.to_numpy()
+
+        # step05: split into training dataframe & testing dataframe
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
+        return (X_train, X_test, y_train, y_test)

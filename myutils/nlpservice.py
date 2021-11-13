@@ -67,7 +67,7 @@ class NLPService:
         # ngram_range = (1,2) # unigrams and bigrams
         min_df = 1
         max_df = 1
-        max_features = 20
+        max_features = 100
 
         tfidf_vectorizer = TfidfVectorizer(encoding='utf-8',
                                 ngram_range=ngram_range,

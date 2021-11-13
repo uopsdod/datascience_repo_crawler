@@ -1,5 +1,7 @@
+import nltk
 import pandas as pd
 import numpy as np
+from nltk.corpus import stopwords
 from sklearn.metrics import accuracy_score, f1_score
 
 from myutils.datasetservice import DatasetService
@@ -38,7 +40,7 @@ class Main:
         # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
-        # dataset_types = ["rating", "feature"] # debug
+        dataset_types = ["rating", "feature"] # debug
 
         models_svc = {}
         accuracy_sum = 0
@@ -51,11 +53,16 @@ class Main:
             label_codes = self.modelSVC.get_label_codes(dataset_type)
             df = self.convert_to_df(df_all, df_datasets[dataset_type], label_codes)
 
+            self.nlpservice.remove_punctuation_signs(df, "comment")
+            self.nlpservice.remove_stopwords(df, "comment")
+
+            df["length_word_cleaned"] = self.datasetService.get_word_count_of_cleaned_comment(df)
+
             # step: fill in null/nan fields
             self.datasetService.fill_null_val(df, "title", "")
             self.datasetService.fill_null_val(df, "comment", "")
             self.datasetService.fill_nan_mean(df, "rating")
-            self.datasetService.fill_nan_mean(df, "length_words")
+            self.datasetService.fill_nan_mean(df, "length_word_cleaned")
             self.datasetService.fill_nan_mean(df, "sentiScore")
 
             # step: balance datasets
@@ -71,16 +78,18 @@ class Main:
             df_final = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
 
             # step: add metadata features
-            if (dataset_type is "rating"):
-                pass
-            elif (dataset_type is "bug"):
-                df_final["rating"] = df["rating"]
-            elif (dataset_type is "feature"):
-                df_final["rating"] = df["rating"]
-            elif (dataset_type is "userexperience"):
-                df_final["rating"] = df["rating"]
+            # if (dataset_type is "rating"):
+            #     df_final["rating"] = df["rating"]
+            #     pass
+            # elif (dataset_type is "bug"):
+            #     df_final["rating"] = df["rating"]
+            # elif (dataset_type is "feature"):
+            #     df_final["rating"] = df["rating"]
+            # elif (dataset_type is "userexperience"):
+            #     df_final["rating"] = df["rating"]
 
-            df_final["length_words"] = df["length_words"]
+            df_final["rating"] = df["rating"]
+            df_final["length_word_cleaned"] = df["length_word_cleaned"]
             df_final["sentiScore"] = df["sentiScore"]
 
             # step: add result class
@@ -137,7 +146,6 @@ class Main:
 
         new_rows_df = pd.DataFrame(new_rows_array)
         return new_rows_df
-
 
 # entry point
 main = Main();

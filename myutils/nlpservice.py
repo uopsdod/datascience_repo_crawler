@@ -93,3 +93,17 @@ class NLPService:
         # print(features_tfidf.shape)
         # print('')
         # return features_tfidf
+
+    def remove_punctuation_signs(self, df, feature_name):
+        punctuation_signs = list("!?:.,;")
+        for punct_sign in punctuation_signs:
+            df.loc[:, feature_name] = df.loc[:, feature_name].str.replace(punct_sign, '', regex=True)
+            # df[feature_name] = feature_replaced
+
+    def remove_stopwords(self, df, feature_name):
+        nltk.download('stopwords')
+        stop_words = list(stopwords.words('english'))
+        for stop_word in stop_words:
+            regex_stopword = r"\b" + stop_word + r"\b"
+            df.loc[:, feature_name] = df.loc[:, feature_name].str.replace(regex_stopword, '', regex=True)
+        print()

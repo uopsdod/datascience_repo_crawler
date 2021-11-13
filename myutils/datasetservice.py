@@ -115,4 +115,5 @@ class DatasetService:
             data.append(example)
         return data
 
-
+    def get_word_count_of_cleaned_comment(self, df):
+        return df['comment'].str.split().str.len()

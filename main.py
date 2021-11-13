@@ -11,7 +11,9 @@ from sklearn.pipeline import Pipeline
 from myutils.datasetservice import DatasetService
 from myutils.nlpservice import NLPService
 from myutils.printservice import PrintService
+from training_model.decisiontree_v2 import ModelDecisionTree
 from training_model.naivebayes_v2 import ModelNaiveBayes
+from training_model.randomforest_v2 import RandomForest
 from training_model.svc_v2 import ModelSVC
 
 
@@ -24,7 +26,8 @@ class Main:
         self.nlpservice = NLPService()
         self.modelSVC = ModelSVC()
         self.modelNaiveBayes = ModelNaiveBayes()
-        pass
+        self.modelDecisionTree = ModelDecisionTree()
+        self.modelRandomForest = RandomForest()
 
     def start(self):
 
@@ -49,11 +52,13 @@ class Main:
 
         models_svc = {}
 
-        model_types = ["svc", "naivebayes"]
+        model_types = ["svc", "naivebayes", "decisiontree", "randomforest"]
 
         # debug
         # model_types = ["naivebayes"]
-        # model_types = ["svc"]
+        model_types = ["svc"]
+        # model_types = ["decisiontree"]
+        # model_types = ["randomforest"]
 
         for model_type in model_types:
             accuracy_sum = 0
@@ -127,9 +132,13 @@ class Main:
                 # X_test_minmax = min_max_scaler.transform(X_test)
 
                 if (model_type == "svc"):
-                    accuracy_now = self.modelSVC.train_model_svc(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                    accuracy_now = self.modelSVC.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "naivebayes"):
                     accuracy_now = self.modelNaiveBayes.train_model_naivebayes(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                elif (model_type == "decisiontree"):
+                    accuracy_now = self.modelDecisionTree.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                elif (model_type == "randomforest"):
+                    accuracy_now = self.modelRandomForest.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
 
                 accuracy_sum = accuracy_sum + accuracy_now
 

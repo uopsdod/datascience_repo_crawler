@@ -107,4 +107,3 @@ class NLPService:
         for stop_word in stop_words:
             regex_stopword = r"\b" + stop_word + r"\b"
             df.loc[:, feature_name] = df.loc[:, feature_name].str.replace(regex_stopword, '', regex=True)
-        print()

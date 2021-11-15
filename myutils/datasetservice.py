@@ -214,8 +214,7 @@ class DatasetService:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
         return (X_train, X_test, y_train, y_test)
 
-    def replace_label_with_zerorone(self, df, dataset_type):
-        label_codes = self.get_label_codes(dataset_type)
+    def replace_label_with_zerorone(self, df, label_codes):
         # label mapping
         df = df.replace({'label': label_codes})
         return df
@@ -242,5 +241,18 @@ class DatasetService:
                 'UserExperience': 1,
                 'Not_UserExperience': 0
             }
+        return label_codes
+
+    def get_label_all_codes(self):
+        label_codes = {
+            'Bug': 0,
+            'Feature': 1,
+            'Rating': 2,
+            'UserExperience': 3,
+            'Not_Bug': 4,
+            'Not_Feature': 4,
+            'Not_Rating': 4,
+            'Not_UserExperience': 4
+        }
         return label_codes
 

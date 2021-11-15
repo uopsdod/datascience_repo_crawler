@@ -33,6 +33,7 @@ class ModelDecisionTree:
         best_model.fit(X_train, y_train)
 
         # Accuracy
+        y_predict_here = best_model.predict(X_train)
         accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
         accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
 

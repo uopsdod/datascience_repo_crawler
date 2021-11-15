@@ -37,7 +37,8 @@ class Main:
         # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
-        dataset_types = ["rating", "feature"] # debug
+        # dataset_types = ["rating", "feature"] # debug
+        dataset_types = ["bug", "rating"]
 
         # model_types = ["logisticregression", "svc", "naivebayes", "decisiontree", "randomforest"]
         # model_types = ["naivebayes", "decisiontree", "randomforest"]
@@ -82,7 +83,6 @@ class Main:
                 df_all = df
             else:
                 df_all = df_all.append(df)
-
 
         # reorganize index here
         df_all = self.datasetService.reorganize_index(df_all)
@@ -130,7 +130,7 @@ class Main:
                 df_here = self.datasetService.balance_dataset(dataset_type, df_here, "label")
 
                 # step: split data for training and testing
-                df_here = self.datasetService.replace_label_with_zerorone(df_here, dataset_type)
+                df_here = self.datasetService.replace_label_with_zerorone(df_here, label_codes)
                 (X_train, X_test, y_train, y_test) = self.datasetService.split_dataset(df_here)
 
                 # X_train_minmax = min_max_scaler.transform(X_train)
@@ -148,7 +148,44 @@ class Main:
                 elif (model_type == "logisticregression"):
                     accuracy_now = self.modelLogisticRegression.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
 
+                accuracy_sum = accuracy_sum + accuracy_now
+
             ########
+
+            # label df_final into 0(bug), 1(feature), 2(rating), 3(userexperience), 4(others)
+            df_final.drop("comment", axis=1, inplace=True)
+            label_all_codes = self.datasetService.get_label_all_codes()
+            df_final_multi = self.datasetService.replace_label_with_zerorone(df_final, label_all_codes)
+            df_final_multi = df_final_multi[(df_final_multi.label != 4)]
+
+            (X_train, X_test, y_train, y_test) = self.datasetService.split_dataset(df_final_multi)
+            Y_train_predict = self.modelSVCWrapper.predict(models_svc, X_train)
+            Y_train_predict = np.array(Y_train_predict)
+
+            Y_train_predict_test = self.modelSVCWrapper.predict(models_svc, X_test)
+            Y_train_predict_test = np.array(Y_train_predict_test)
+
+            # count_tmp = 0
+            # for index, val in enumerate(Y_train_predict):
+            #     if (Y_train_predict[index] == y_train[index]):
+            #         count_tmp = count_tmp + 1
+
+            # Accuracy
+            accuracy_here = accuracy_score(y_train, Y_train_predict)
+            accuracy_here_test = accuracy_score(y_test, Y_train_predict_test)
+            accuracy_score_result = str(int(accuracy_here * 100))
+            accuracy_score_result_test = str(int(accuracy_here_test * 100) )
+
+            # F1-score
+            f1_score_results = f1_score(y_train, self.modelSVCWrapper.predict(models_svc, X_train), average=None)
+            f1_score_results_test = f1_score(y_test, self.modelSVCWrapper.predict(models_svc, X_test), average=None)
+            # f1_score_result = str(int( * 100))
+
+            # self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+            #                                     f1_score_result_test, "generate", dataset_type)
+
+            print()
+            # remove
             # df_all_final = None
             # for dataset_type in dataset_types:
             #     df_now = df_final_dataset[dataset_type]
@@ -162,8 +199,9 @@ class Main:
             #     pass
             ######
 
-            # self.modelSVCWrapper.predict()
-            accuracy_sum = accuracy_sum + accuracy_now
+
+
+
 
             mean_accuracy_overall = accuracy_sum / len(models_svc)
             print(f'mean_accuracy_overall: {mean_accuracy_overall} \n')

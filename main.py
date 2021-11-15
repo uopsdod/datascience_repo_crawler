@@ -71,10 +71,10 @@ class Main:
             # self.datasetService.standardize_feature(df, "length_word_cleaned") # not good at all - don't use it
 
             # step: NLP
-            self.nlpservice.lemmatize(df, "title")
-            self.nlpservice.lemmatize(df, "comment")
-            self.nlpservice.remove_punctuation_signs(df, "comment")
-            self.nlpservice.remove_stopwords(df, "comment")
+            # self.nlpservice.lemmatize(df, "title")
+            # self.nlpservice.lemmatize(df, "comment")
+            # self.nlpservice.remove_punctuation_signs(df, "comment")
+            # self.nlpservice.remove_stopwords(df, "comment")
 
             df_datasets[dataset_type] = df
             example_count = example_count + len(df)
@@ -109,8 +109,6 @@ class Main:
         # df_final_dataset[dataset_type] = df_final.copy()
 
         for model_type in model_types:
-            accuracy_sum = 0
-            df_final_dataset = {}
             models_svc = {}
 
             self.printService.print_result(f'[{model_type}]', "Accuracy(%)", "F1-score(%)")
@@ -138,17 +136,15 @@ class Main:
                 # X_test_minmax = min_max_scaler.transform(X_test)
 
                 if (model_type == "svc"):
-                    accuracy_now = self.modelSVC.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                    self.modelSVC.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "naivebayes"):
-                    accuracy_now = self.modelNaiveBayes.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                    self.modelNaiveBayes.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "decisiontree"):
-                    accuracy_now = self.modelDecisionTree.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                    self.modelDecisionTree.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "randomforest"):
-                    accuracy_now = self.modelRandomForest.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
+                    self.modelRandomForest.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
                 elif (model_type == "logisticregression"):
-                    accuracy_now = self.modelLogisticRegression.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
-
-                accuracy_sum = accuracy_sum + accuracy_now
+                    self.modelLogisticRegression.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
 
             ########
 
@@ -166,28 +162,14 @@ class Main:
             Y_train_predict = self.modelSVCWrapper.predict(models_svc, X_final)
             Y_train_predict = np.array(Y_train_predict)
 
-            # Y_train_predict_test = self.modelSVCWrapper.predict(models_svc, X_test)
-            # Y_train_predict_test = np.array(Y_train_predict_test)
-
-            # count_tmp = 0
-            # for index, val in enumerate(Y_train_predict):
-            #     if (Y_train_predict[index] == y_train[index]):
-            #         count_tmp = count_tmp + 1
-
             # Accuracy
             accuracy_here = accuracy_score(y_final, Y_train_predict)
             accuracy_score_result = str(int(accuracy_here * 100))
-            # accuracy_here_test = accuracy_score(y_test, Y_train_predict_test)
-            # accuracy_score_result_test = str(int(accuracy_here_test * 100) )
 
             # F1-score
             f1_score_results = f1_score(y_final, Y_train_predict, average=None)
-            # f1_score_results_test = f1_score(y_test, self.modelSVCWrapper.predict(models_svc, X_test), average=None)
             for index, val in enumerate(f1_score_results):
                 f1_score_results[index] = int(f1_score_results[index] * 100)
-            # for index, val in enumerate(f1_score_results_test):
-            #     f1_score_results_test[index] = int(f1_score_results_test[index] * 100)
-            # f1_score_result = str(int( * 100))
 
             self.printService.print_result_here(accuracy_score_result, accuracy_score_result,
                                                 str(f1_score_results[0]), str(f1_score_results[0]), "generate", "bug")
@@ -197,33 +179,6 @@ class Main:
                                                 str(f1_score_results[2]), str(f1_score_results[2]), "generate", "rating")
             self.printService.print_result_here(accuracy_score_result, accuracy_score_result,
                                                 str(f1_score_results[3]), str(f1_score_results[3]), "generate", "userexperience")
-
-            print()
-            # remove
-            # df_all_final = None
-            # for dataset_type in dataset_types:
-            #     df_now = df_final_dataset[dataset_type]
-            #     labels_now = df_now.pop('label') # remove column b and store it in df1
-            #     df_now['label'] = labels_now
-            #
-            #     if df_all_final is None:
-            #         df_all_final = df_now
-            #     else:
-            #         df_all_final = df_all_final.append(df_now)
-            #     pass
-            ######
-
-
-
-
-
-            mean_accuracy_overall = accuracy_sum / len(models_svc)
-            print(f'mean_accuracy_overall: {mean_accuracy_overall} \n')
-
-
-
-
-
 
 
 

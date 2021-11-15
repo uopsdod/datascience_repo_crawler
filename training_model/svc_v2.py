@@ -96,18 +96,18 @@ class ModelSVC:
         # fit the model
         best_model.fit(X_train, y_train)
 
-        # Accuracy
-        # results_here = best_model.predict(X_train)
-        accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
-        accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
-
-        # F1-score
-        f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
-        f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
-
-        self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
-                                            f1_score_result_test, "generate", dataset_type)
-        return int(accuracy_score_result_test)
+        # # Accuracy
+        # # results_here = best_model.predict(X_train)
+        # accuracy_score_result = str(int(accuracy_score(y_train, best_model.predict(X_train)) * 100))
+        # accuracy_score_result_test = str(int(accuracy_score(y_test, best_model.predict(X_test)) * 100) )
+        #
+        # # F1-score
+        # f1_score_result = str(int(f1_score(y_train, best_model.predict(X_train)) * 100))
+        # f1_score_result_test = str( int(f1_score(y_test, best_model.predict(X_test)) * 100) )
+        #
+        # self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
+        #                                     f1_score_result_test, "generate", dataset_type)
+        # return int(accuracy_score_result_test)
 
     def train_helper(self, X_train, y_train, param_grid, estimators):
         scoring_strategy_list = ["accuracy", "f1"]

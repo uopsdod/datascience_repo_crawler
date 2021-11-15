@@ -16,8 +16,7 @@ from training_model.logistic_regression import ModelLogisticRegression
 from training_model.naivebayes_v2 import ModelNaiveBayes
 from training_model.randomforest_v2 import RandomForest
 from training_model.svc_v2 import ModelSVC
-
-
+from training_model.svc_wapper import ModelSVCWrapper
 
 
 class Main:
@@ -30,14 +29,15 @@ class Main:
         self.modelNaiveBayes = ModelNaiveBayes()
         self.modelDecisionTree = ModelDecisionTree()
         self.modelRandomForest = RandomForest()
+        self.modelSVCWrapper = ModelSVCWrapper()
 
     def start(self):
 
-        dataset_types = ["feature", "bug", "rating", "userexperience"]
+        # dataset_types = ["feature", "bug", "rating", "userexperience"]
         # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
-        # dataset_types = ["rating", "feature"] # debug
+        dataset_types = ["rating", "feature"] # debug
 
         # model_types = ["logisticregression", "svc", "naivebayes", "decisiontree", "randomforest"]
         # model_types = ["naivebayes", "decisiontree", "randomforest"]
@@ -53,6 +53,28 @@ class Main:
         example_count = 0
         for dataset_type in dataset_types:
             df = self.datasetService.load_file(dataset_type)
+
+            # step: fill in null/nan fields
+            self.datasetService.fill_null_val(df, "title", "")
+            self.datasetService.fill_null_val(df, "comment", "")
+            self.datasetService.fill_nan_mean(df, "rating")
+            self.datasetService.fill_nan_mean(df, "sentiScore")
+
+            # data clean - convert to numeric value - fee type
+            self.datasetService.convert_fee_type_to_numeric(df)
+
+            # feature scaling
+            self.datasetService.standardize_feature(df, "rating")
+            self.datasetService.standardize_feature(df, "sentiScore")
+            self.datasetService.standardize_feature(df, "fee")
+            # self.datasetService.standardize_feature(df, "length_word_cleaned") # not good at all - don't use it
+
+            # step: NLP
+            self.nlpservice.lemmatize(df, "title")
+            self.nlpservice.lemmatize(df, "comment")
+            self.nlpservice.remove_punctuation_signs(df, "comment")
+            self.nlpservice.remove_stopwords(df, "comment")
+
             df_datasets[dataset_type] = df
             example_count = example_count + len(df)
 
@@ -62,10 +84,34 @@ class Main:
                 df_all = df_all.append(df)
 
 
-        models_svc = {}
+        # reorganize index here
+        df_all = self.datasetService.reorganize_index(df_all)
+
+        # let's divide data_train data_test right here
+
+        # step: NLP - convert a sentence to BOW (TF-IDF)
+        df_comment_train = self.nlpservice.convert_to_tfidf_text_representation(df_all, "comment")
+        df_title_train = self.nlpservice.convert_to_tfidf_text_representation(df_all, "title")
+        df_final = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
+
+        df_final["comment"] = df_all["comment"]
+        df_final["rating"] = df_all["rating"]
+        df_final["sentiScore"] = df_all["sentiScore"]
+        df_final["fee"] = df_all["fee"]
+
+        df_final["length_word_cleaned"] = self.datasetService.get_word_count_of_cleaned_comment(df_final)
+        self.datasetService.fill_nan_mean(df_final, "length_word_cleaned")
+
+        # step: add result class
+        df_final["label"] = df_all["label"]
+
+        # keep it
+        # df_final_dataset[dataset_type] = df_final.copy()
 
         for model_type in model_types:
             accuracy_sum = 0
+            df_final_dataset = {}
+            models_svc = {}
 
             self.printService.print_result(f'[{model_type}]', "Accuracy(%)", "F1-score(%)")
             for dataset_type in dataset_types:
@@ -73,65 +119,19 @@ class Main:
                 # features_gleaned = ["title", "comment", "rating", "label"]
                 # df = self.datasetService.load_file(dataset_type, features_gleaned)
 
+                # convert label name to numeric
                 label_codes = self.datasetService.get_label_codes(dataset_type)
-                df = self.datasetService.convert_to_df(df_all, df_datasets[dataset_type], label_codes)
+                df_here = self.datasetService.convert_to_df(df_final, df_datasets[dataset_type], label_codes)
 
-                # data clean - convert to numeric value - fee type
-                self.datasetService.convert_fee_type_to_numeric(df)
-
-
-                df["length_word_cleaned"] = self.datasetService.get_word_count_of_cleaned_comment(df)
-
-                # step: fill in null/nan fields
-                self.datasetService.fill_null_val(df, "title", "")
-                self.datasetService.fill_null_val(df, "comment", "")
-                self.datasetService.fill_nan_mean(df, "rating")
-                self.datasetService.fill_nan_mean(df, "length_word_cleaned")
-                self.datasetService.fill_nan_mean(df, "sentiScore")
-
-                # feature scaling
-                self.datasetService.standardize_feature(df, "rating")
-                self.datasetService.standardize_feature(df, "sentiScore")
-                self.datasetService.standardize_feature(df, "fee")
-                # self.datasetService.standardize_feature(df, "length_word_cleaned") # not good at all - don't use it
+                # remove comment (which is string format and for temporary use)
+                df_here.drop("comment", axis=1, inplace=True)
 
                 # step: balance datasets
-                df = self.datasetService.balance_dataset(dataset_type, df, "label")
-
-                # step: NLP
-                self.nlpservice.lemmatize(df, "title")
-                self.nlpservice.lemmatize(df, "comment")
-                self.nlpservice.remove_punctuation_signs(df, "comment")
-                self.nlpservice.remove_stopwords(df, "comment")
-
-                # step: NLP - convert a sentence to BOW (TF-IDF)
-                ngram_range_bigram = (1, 2)
-                ngram_range = (1)
-                df_comment_train = self.nlpservice.convert_to_tfidf_text_representation(df, "comment")
-                df_title_train = self.nlpservice.convert_to_tfidf_text_representation(df, "title")
-                df_final = df_comment_train.merge(df_title_train, left_index=True, right_index=True) # join by index
-
-                # step: add metadata features
-                # if (dataset_type is "rating"):
-                #     df_final["rating"] = df["rating"]
-                #     pass
-                # elif (dataset_type is "bug"):
-                #     df_final["rating"] = df["rating"]
-                # elif (dataset_type is "feature"):
-                #     df_final["rating"] = df["rating"]
-                # elif (dataset_type is "userexperience"):
-                #     df_final["rating"] = df["rating"]
-
-                df_final["rating"] = df["rating"]
-                df_final["length_word_cleaned"] = df["length_word_cleaned"]
-                df_final["sentiScore"] = df["sentiScore"]
-                df_final["fee"] = df["fee"]
-
-                # step: add result class
-                df_final["label"] = df["label"]
+                df_here = self.datasetService.balance_dataset(dataset_type, df_here, "label")
 
                 # step: split data for training and testing
-                (X_train, X_test, y_train, y_test) = self.datasetService.split_dataset(df_final, dataset_type)
+                df_here = self.datasetService.replace_label_with_zerorone(df_here, dataset_type)
+                (X_train, X_test, y_train, y_test) = self.datasetService.split_dataset(df_here)
 
                 # X_train_minmax = min_max_scaler.transform(X_train)
                 # X_train["length_word_cleaned"] = X_train_minmax["length_word_cleaned"]
@@ -148,7 +148,22 @@ class Main:
                 elif (model_type == "logisticregression"):
                     accuracy_now = self.modelLogisticRegression.train_model(models_svc, dataset_type, X_test, X_train, y_test, y_train)
 
-                accuracy_sum = accuracy_sum + accuracy_now
+            ########
+            # df_all_final = None
+            # for dataset_type in dataset_types:
+            #     df_now = df_final_dataset[dataset_type]
+            #     labels_now = df_now.pop('label') # remove column b and store it in df1
+            #     df_now['label'] = labels_now
+            #
+            #     if df_all_final is None:
+            #         df_all_final = df_now
+            #     else:
+            #         df_all_final = df_all_final.append(df_now)
+            #     pass
+            ######
+
+            # self.modelSVCWrapper.predict()
+            accuracy_sum = accuracy_sum + accuracy_now
 
             mean_accuracy_overall = accuracy_sum / len(models_svc)
             print(f'mean_accuracy_overall: {mean_accuracy_overall} \n')

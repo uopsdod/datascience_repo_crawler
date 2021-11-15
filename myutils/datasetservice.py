@@ -158,6 +158,36 @@ class DatasetService:
         new_rows_df = pd.DataFrame(new_rows_array)
         return new_rows_df
 
+    def reorganize_index(self, df):
+        # new_index = [range(len(df.index))]
+        # df.reindex(new_index)
+
+        row_arrays = df.to_numpy()
+        new_rows_df = pd.DataFrame(row_arrays, columns=df.columns)
+
+        # count = 0
+        # new_rows_array = []
+        # for index, series_row in df.iterrows():
+        #     series_row['myindex'] = count
+        #     series_row.id = count
+        #     count = count + 1
+        #     new_rows_array.append(series_row)
+        #
+        # new_index = [range(len(df.index) - 1)]
+        # new_rows_df = pd.DataFrame(new_rows_array, index=new_index)
+        # new_rows_df.set_index('myindex')
+
+        # count = 0
+        # for index, row in df.iterrows():
+        #
+        #     row['myindex'] = count
+        #     # df.loc[index, 'myindex'] = count
+        #     count = count + 1
+
+        return new_rows_df
+
+
+
     def convert_fee_type_to_numeric(self, df_all):
 
         for index, row in df_all.iterrows():
@@ -171,6 +201,24 @@ class DatasetService:
             else:
                 fee_val = 0
             df_all.loc[index, 'fee'] = fee_val
+
+    def split_dataset(self, df):
+
+        X = df.iloc[:, :-1].copy()
+        y = df.iloc[: , -1].copy()
+
+        # X = X.to_numpy()
+        # y = y.to_numpy()
+
+        # step05: split into training dataframe & testing dataframe
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
+        return (X_train, X_test, y_train, y_test)
+
+    def replace_label_with_zerorone(self, df, dataset_type):
+        label_codes = self.get_label_codes(dataset_type)
+        # label mapping
+        df = df.replace({'label': label_codes})
+        return df
 
     def get_label_codes(self, dataset_type):
         label_codes = {}
@@ -196,19 +244,3 @@ class DatasetService:
             }
         return label_codes
 
-    def split_dataset(self, df, dataset_type):
-
-        label_codes = self.get_label_codes(dataset_type)
-
-        # label mapping
-        df = df.replace({'label':label_codes})
-
-        X = df.iloc[:, :-1].copy()
-        y = df['label']
-
-        # X = X.to_numpy()
-        # y = y.to_numpy()
-
-        # step05: split into training dataframe & testing dataframe
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42)
-        return (X_train, X_test, y_train, y_test)

@@ -33,12 +33,12 @@ class Main:
 
     def start(self):
 
-        # dataset_types = ["feature", "bug", "rating", "userexperience"]
+        dataset_types = ["bug", "feature", "rating", "userexperience"]
         # dataset_types = ["rating"] # debug
         # dataset_types = ["feature"] # debug
         # dataset_types = ["bug"] # debug
         # dataset_types = ["rating", "feature"] # debug
-        dataset_types = ["bug", "rating"]
+        # dataset_types = ["bug", "rating"]
 
         # model_types = ["logisticregression", "svc", "naivebayes", "decisiontree", "randomforest"]
         # model_types = ["naivebayes", "decisiontree", "randomforest"]
@@ -158,12 +158,16 @@ class Main:
             df_final_multi = self.datasetService.replace_label_with_zerorone(df_final, label_all_codes)
             df_final_multi = df_final_multi[(df_final_multi.label != 4)]
 
-            (X_train, X_test, y_train, y_test) = self.datasetService.split_dataset(df_final_multi)
-            Y_train_predict = self.modelSVCWrapper.predict(models_svc, X_train)
+            X_final = df_final_multi.iloc[:, :-1].copy()
+            y_final = df_final_multi.iloc[: , -1].copy()
+
+            # (X_train, X_test, y_train, y_test) = self.datasetService.split_dataset(df_final_multi)
+
+            Y_train_predict = self.modelSVCWrapper.predict(models_svc, X_final)
             Y_train_predict = np.array(Y_train_predict)
 
-            Y_train_predict_test = self.modelSVCWrapper.predict(models_svc, X_test)
-            Y_train_predict_test = np.array(Y_train_predict_test)
+            # Y_train_predict_test = self.modelSVCWrapper.predict(models_svc, X_test)
+            # Y_train_predict_test = np.array(Y_train_predict_test)
 
             # count_tmp = 0
             # for index, val in enumerate(Y_train_predict):
@@ -171,18 +175,28 @@ class Main:
             #         count_tmp = count_tmp + 1
 
             # Accuracy
-            accuracy_here = accuracy_score(y_train, Y_train_predict)
-            accuracy_here_test = accuracy_score(y_test, Y_train_predict_test)
+            accuracy_here = accuracy_score(y_final, Y_train_predict)
             accuracy_score_result = str(int(accuracy_here * 100))
-            accuracy_score_result_test = str(int(accuracy_here_test * 100) )
+            # accuracy_here_test = accuracy_score(y_test, Y_train_predict_test)
+            # accuracy_score_result_test = str(int(accuracy_here_test * 100) )
 
             # F1-score
-            f1_score_results = f1_score(y_train, self.modelSVCWrapper.predict(models_svc, X_train), average=None)
-            f1_score_results_test = f1_score(y_test, self.modelSVCWrapper.predict(models_svc, X_test), average=None)
+            f1_score_results = f1_score(y_final, Y_train_predict, average=None)
+            # f1_score_results_test = f1_score(y_test, self.modelSVCWrapper.predict(models_svc, X_test), average=None)
+            for index, val in enumerate(f1_score_results):
+                f1_score_results[index] = int(f1_score_results[index] * 100)
+            # for index, val in enumerate(f1_score_results_test):
+            #     f1_score_results_test[index] = int(f1_score_results_test[index] * 100)
             # f1_score_result = str(int( * 100))
 
-            # self.printService.print_result_here(accuracy_score_result, accuracy_score_result_test, f1_score_result,
-            #                                     f1_score_result_test, "generate", dataset_type)
+            self.printService.print_result_here(accuracy_score_result, accuracy_score_result,
+                                                str(f1_score_results[0]), str(f1_score_results[0]), "generate", "bug")
+            self.printService.print_result_here(accuracy_score_result, accuracy_score_result,
+                                                str(f1_score_results[1]), str(f1_score_results[1]), "generate", "feature")
+            self.printService.print_result_here(accuracy_score_result, accuracy_score_result,
+                                                str(f1_score_results[2]), str(f1_score_results[2]), "generate", "rating")
+            self.printService.print_result_here(accuracy_score_result, accuracy_score_result,
+                                                str(f1_score_results[3]), str(f1_score_results[3]), "generate", "userexperience")
 
             print()
             # remove
